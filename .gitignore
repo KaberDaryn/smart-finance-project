@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+data/
+.dart_tool/
+build/
+.idea/
+*.log
+mobile/android/local.properties

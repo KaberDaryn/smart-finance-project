@@ -1,0 +1,10 @@
+.git
+.github
+.env
+.env.*
+data
+docs
+mobile
+tests
+__pycache__
+*.py[cod]
