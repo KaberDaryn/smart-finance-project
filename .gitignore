@@ -10,3 +10,7 @@ build/
 .idea/
 *.log
 mobile/android/local.properties
+
+# Reports are maintained outside this repository.
+docs/REPORT*
+scripts/export_report.py
