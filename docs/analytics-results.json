@@ -1,0 +1,51 @@
+{
+  "classification": {
+    "method": "multinomial Naive Bayes with Laplace smoothing",
+    "examples": 40,
+    "train_examples": 30,
+    "test_examples": 10,
+    "seed": 42,
+    "accuracy": 0.4,
+    "macro_f1": 0.4267,
+    "labels": [
+      "Entertainment",
+      "Groceries",
+      "Health",
+      "Housing",
+      "Transport"
+    ],
+    "data_note": "Synthetic examples for a software demonstration; scores are not research findings."
+  },
+  "forecasting": {
+    "data_note": "Twelve synthetic monthly totals; last four months evaluated with expanding past-only history.",
+    "test_months": 4,
+    "mean_baseline_mae_kzt": 1250.0,
+    "last_month_baseline_mae_kzt": 1375.0,
+    "predictions": [
+      {
+        "month": "2025-09",
+        "actual_minor": 2850000,
+        "mean_prediction_minor": 2850000,
+        "last_month_prediction_minor": 3000000
+      },
+      {
+        "month": "2025-10",
+        "actual_minor": 3100000,
+        "mean_prediction_minor": 2916667,
+        "last_month_prediction_minor": 2850000
+      },
+      {
+        "month": "2025-11",
+        "actual_minor": 3200000,
+        "mean_prediction_minor": 2983333,
+        "last_month_prediction_minor": 3100000
+      },
+      {
+        "month": "2025-12",
+        "actual_minor": 3150000,
+        "mean_prediction_minor": 3050000,
+        "last_month_prediction_minor": 3200000
+      }
+    ]
+  }
+}
