@@ -75,10 +75,24 @@ class ApiTests(unittest.TestCase):
 
     def test_classifier_and_insights(self):
         status, result = self.post("/analytics/classify", {"description": "supermarket food shopping"})
-        self.assertEqual(status, 503)
-        self.assertIn("unavailable", result["error"].lower())
+        self.assertEqual(status, 200)
+        self.assertEqual(result["category"], "Groceries")
         self.assertEqual(self.post("/analytics/classify", {"description": ""})[0], 400)
         self.assertEqual(self.request("GET", "/analytics")[0], 200)
+
+    def test_demo_history_forecast_through_authenticated_api(self):
+        from backend.demo import demo_rows
+        for row in demo_rows():
+            self.assertEqual(self.post('/transactions', row)[0], 201)
+        status, body, _ = self.request('GET', '/analytics')
+        self.assertEqual(status, 200)
+        result = json.loads(body)
+        self.assertEqual(result['forecast']['status'], 'ok')
+        self.assertGreater(result['forecast']['forecast_minor'], 0)
+        self.assertEqual(result['currency'], 'KZT')
+        self.assertGreater(len(result['months']), 2)
+        self.assertTrue(result['categories'])
+        self.assertIn('recommendations', result)
 
     def test_static_app_cannot_escape_web_directory(self):
         status, body, _ = self.request("GET", "/")
