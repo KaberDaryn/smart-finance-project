@@ -1,0 +1,5 @@
+date,kind,amount,category,description
+2025-01-01,income,180000.00,Salary,Fictional sample income
+2025-01-15,expense,1500.01,Groceries,Fictional food shopping
+2025-02-15,expense,1800.00,Transport,Fictional bus pass
+2025-03-15,expense,2200.00,Health,Fictional pharmacy purchase

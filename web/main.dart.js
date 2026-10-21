@@ -91632,7 +91632,7 @@ j=A.k(k.h(0,d))
 i=A.bU(k.h(0,"amount_minor"))
 h=i<0?"-":""
 i=Math.abs(i)
-i=A.aS(j+" \u0412\xb7 "+(h+B.e.cV(i,100)+"."+B.c.eF(B.e.k(B.e.aZ(i,100)),2,"0")+" KZT"),e,e,e,e,e,e,e)
+i=A.aS(j+" - "+(h+B.e.cV(i,100)+"."+B.c.eF(B.e.k(B.e.aZ(i,100)),2,"0")+" KZT"),e,e,e,e,e,e,e)
 h=A.e1(k.h(0,"share"))
 s.push(new A.b1(B.ou,A.fc(A.c([i,B.Af,A.axD(A.k(k.h(0,d))+" share of expenses",""+B.d.aQ(A.e1(k.h(0,"share"))*100)+" percent",h)],m),B.aW,B.R,B.ax),e))}s.push(B.hy)
 r=f.c
@@ -91645,7 +91645,7 @@ j=A.k(k.h(0,"month"))
 i=A.bU(k.h(0,c))
 h=i<0?"-":""
 i=Math.abs(i)
-i=A.aS(j+" \u0412\xb7 "+(h+B.e.cV(i,100)+"."+B.c.eF(B.e.k(B.e.aZ(i,100)),2,"0")+" KZT"),e,e,e,e,e,e,e)
+i=A.aS(j+" - "+(h+B.e.cV(i,100)+"."+B.c.eF(B.e.k(B.e.aZ(i,100)),2,"0")+" KZT"),e,e,e,e,e,e,e)
 h=A.bU(k.h(0,c))
 j=A.k(k.h(0,"month"))
 k=A.bU(k.h(0,c))
