@@ -429,7 +429,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${category['category']} В· ${money(category['amount_minor'] as int)}',
+                  '${category['category']} - ${money(category['amount_minor'] as int)}',
                 ),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(
@@ -455,7 +455,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${month['month']} В· ${money(month['expense_minor'] as int)}',
+                  '${month['month']} - ${money(month['expense_minor'] as int)}',
                 ),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(
