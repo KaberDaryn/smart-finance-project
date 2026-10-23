@@ -1,7 +1,7 @@
 import os
 import unittest
 import uuid
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 from backend import auth, csv_import, planning, store
 from backend.merchant_categories import lookup_category
@@ -19,7 +19,7 @@ class PostgresTests(unittest.TestCase):
                 parts = urlsplit(os.environ['TEST_DATABASE_URL'])
                 query = dict(parse_qsl(parts.query))
                 query['options'] = f'-c search_path={schema}'
-                database = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+                database = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query, quote_via=quote), parts.fragment))
                 with store.connection(database) as db:
                     user = auth.create_user(db, {'username': 'postgres_test', 'password': 'PostgresTestPassword!'})
                     store.add(db, {'kind': 'expense', 'amount_minor': 10001, 'category': 'Food'}, user['id'])
