@@ -1,6 +1,6 @@
 # API reference
 
-The local browser client and API share http://127.0.0.1:8000. JSON responses use UTF-8. Private routes require `Authorization: Bearer <session token>`. Public routes are /health, the static web client, registration, and login. Amount fields ending in _minor are integers; 150001 represents 1500.01 KZT. Request bodies are bounded to 16 KiB, except CSV imports, which allow 128 KiB of JSON.
+The local browser client and API share http://127.0.0.1:8000. JSON responses use UTF-8. Private routes require `Authorization: Bearer <session token>`. Public routes are /health, the static web client, registration, and login. Amount fields ending in _minor are integers; 150001 represents 1500.01 KZT. JSON request bodies are bounded to 16 KiB, except CSV imports, which allow 128 KiB. Receipt uploads accept raw image bytes up to 5 MiB.
 
 | Method | Route | Request or result |
 | --- | --- | --- |
@@ -10,7 +10,8 @@ The local browser client and API share http://127.0.0.1:8000. JSON responses use
 | GET | /auth/me | Current account ID and username |
 | POST | /auth/logout | Empty object; revokes the current token |
 | GET | /transactions | Current account's records, descending date and ID |
-| POST | /transactions | kind, amount_minor, category, optional description and date (YYYY-MM-DD) |
+| POST | /transactions | kind, amount_minor, category, optional description and date (YYYY-MM-DD); optional merchant on authenticated expenses updates category memory |
+| POST | /receipts/parse | Raw JPEG/PNG/WebP photo; returns merchant, date, total, currency, category, category_source; does not save an expense |
 | POST | /transactions/import | csv string; returns imported count and duplicate flag |
 | GET | /summary | Income, expense, balance totals, and currency |
 | GET | /analytics | Category shares, up to 12 recorded month totals, forecast, current budgets, and spending observations |
@@ -22,6 +23,8 @@ The local browser client and API share http://127.0.0.1:8000. JSON responses use
 | POST | /goals/update | id, saved_minor; owner-only progress update |
 
 Transactions and goals return 201 on creation. Login, logout, classification, imports, budget saves, and goal progress updates return 200. Registration returns 201. Invalid input returns 400, missing/expired credentials 401, duplicate usernames 409, and too many authentication attempts 429. Unexpected storage failures return 500 with no database details.
+
+Receipt parsing returns 200, or 502 for unreadable service responses, 503 for missing configuration, quota limits, or service unavailability, and 504 for provider timeouts. See [receipt validation, category memory, and evaluation](RECEIPTS.md).
 
 An example transaction body is:
 

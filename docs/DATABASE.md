@@ -1,8 +1,10 @@
 # Storage and migration
 
-PostgreSQL and SQLite use the same logical tables: users, sessions, transactions, budgets, goals, and imports. Amounts are stored as integer minor units; 150001 represents 1500.01 KZT. Each private record is associated with a user ID. Sessions store only a hash of the bearer token and an expiry timestamp.
+PostgreSQL and SQLite use the same logical tables: users, sessions, transactions, budgets, goals, imports, and merchant_categories. Amounts are stored as integer minor units; 150001 represents 1500.01 KZT. Each private record is associated with a user ID. Sessions store only a hash of the bearer token and an expiry timestamp.
 
 Schema setup adds the user_id column to a legacy transaction table without assigning old records to an arbitrary account. Legacy records with no owner are not returned by the authenticated API. Existing SQLite data stays in its original file.
+
+The idempotent receipt migration `backend/migrations/001_merchant_categories.sql` runs during the existing schema setup after a server restart. It creates category memory keyed by `(user_id, merchant_key)`, with a foreign key to `users`. Expense creation and merchant-category updates share one transaction. Receipt images are never stored. See [receipt storage details](RECEIPTS.md).
 
 ## Legacy SQLite to PostgreSQL
 

@@ -1,6 +1,7 @@
 import sqlite3
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
+from pathlib import Path
 from threading import Lock
 
 _schema_lock = Lock()
@@ -48,7 +49,7 @@ def initialize(db, postgres):
         db.execute(f'''CREATE TABLE IF NOT EXISTS users (
             id {identity}, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
             salt TEXT NOT NULL, created_at TEXT NOT NULL)''')
-        db.execute(f'''CREATE TABLE IF NOT EXISTS sessions (
+        db.execute('''CREATE TABLE IF NOT EXISTS sessions (
             token_hash TEXT PRIMARY KEY, user_id BIGINT NOT NULL REFERENCES users(id),
             expires_at TEXT NOT NULL)''')
         db.execute(f'''CREATE TABLE IF NOT EXISTS transactions (
@@ -72,6 +73,8 @@ def initialize(db, postgres):
         db.execute('''CREATE TABLE IF NOT EXISTS imports (
             user_id BIGINT NOT NULL REFERENCES users(id), content_hash TEXT NOT NULL,
             PRIMARY KEY(user_id, content_hash))''')
+        migration = Path(__file__).with_name('migrations') / '001_merchant_categories.sql'
+        db.execute(migration.read_text(encoding='utf-8'))
 
 
 @contextmanager
@@ -123,8 +126,18 @@ def insert(db, values, user_id):
 
 def add(db, payload, user_id=None):
     values = prepare(payload)
+    merchant = payload.get('merchant')
+    if merchant is not None:
+        from .merchant_categories import prepare_merchant
+        merchant = prepare_merchant(merchant)
+        if values[0] != 'expense' or user_id is None:
+            raise ValueError('merchant is only supported for an authenticated expense')
     with transaction(db):
-        return insert(db, values, user_id)
+        result = insert(db, values, user_id)
+        if merchant is not None:
+            from .merchant_categories import remember_category
+            remember_category(db, user_id, merchant, values[2])
+        return result
 
 
 def transactions(db, user_id=None):

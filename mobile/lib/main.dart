@@ -6,6 +6,8 @@ export 'formatters.dart';
 import 'sign_in.dart';
 import 'planning_page.dart';
 import 'import_page.dart';
+import 'expense_categories.dart';
+import 'receipt_scan_page.dart';
 
 void main() => runApp(const FinanceApp());
 
@@ -150,9 +152,19 @@ class _TransactionsPageState extends State<TransactionsPage> {
   }
 
   Future<void> add() async {
-    final saved = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => AddPage(api: api)));
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AddPage(
+          api: api,
+          categories: {
+            ...expenseCategories,
+            ...items
+                .where((item) => item['kind'] == 'expense')
+                .map((item) => item['category'] as String),
+          }.toList(),
+        ),
+      ),
+    );
     if (saved == true && mounted) {
       ScaffoldMessenger.of(
         context,
@@ -479,9 +491,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
             'Average of the previous three complete months. Missing months count as zero, so keep your diary complete. Actual expenses may differ.',
           ),
         ] else
-          Text(forecast['status'] == 'unavailable'
-            ? 'Forecasting is not available yet.'
-            : 'Record expenses across at least three complete months to see an estimate.'),
+          Text(
+            forecast['status'] == 'unavailable'
+                ? 'Forecasting is not available yet.'
+                : 'Record expenses across at least three complete months to see an estimate.',
+          ),
         const Divider(height: 40),
         Text(
           'Spending observations',
@@ -498,8 +512,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
 }
 
 class AddPage extends StatefulWidget {
-  const AddPage({super.key, required this.api});
+  const AddPage({
+    super.key,
+    required this.api,
+    this.pickPhoto,
+    this.categories = expenseCategories,
+  });
   final FinanceApi api;
+  final ReceiptPhotoPicker? pickPhoto;
+  final List<String> categories;
   @override
   State<AddPage> createState() => _AddPageState();
 }
@@ -509,6 +530,12 @@ class _AddPageState extends State<AddPage> {
   final amount = TextEditingController();
   final category = TextEditingController();
   final description = TextEditingController();
+  final merchant = TextEditingController();
+  final receiptDate = TextEditingController();
+  final receiptTotal = TextEditingController();
+  bool scanned = false;
+  String? receiptCurrency;
+  String? rememberedCategory;
   String kind = 'expense';
   DateTime date = DateTime.now().toUtc();
   bool saving = false;
@@ -521,6 +548,9 @@ class _AddPageState extends State<AddPage> {
     amount.dispose();
     category.dispose();
     description.dispose();
+    merchant.dispose();
+    receiptDate.dispose();
+    receiptTotal.dispose();
     super.dispose();
   }
 
@@ -561,6 +591,96 @@ class _AddPageState extends State<AddPage> {
     }
   }
 
+  Future<void> scanReceipt() async {
+    final receipt = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        builder: (_) =>
+            ReceiptScanPage(api: widget.api, pickPhoto: widget.pickPhoto),
+      ),
+    );
+    if (receipt == null || !mounted) return;
+    setState(() {
+      scanned = true;
+      kind = 'expense';
+      merchant.text = receipt['merchant'] as String? ?? '';
+      receiptDate.text = receipt['date'] as String? ?? '';
+      receiptCurrency = receipt['currency'] as String?;
+      final total = receipt['total'] as num?;
+      receiptTotal.text = total?.toStringAsFixed(2) ?? '';
+      amount.text = receiptCurrency == 'KZT' ? receiptTotal.text : '';
+      category.text = receipt['category'] as String? ?? '';
+      rememberedCategory = receipt['category_source'] == 'remembered'
+          ? category.text
+          : null;
+      suggestion = null;
+      error = null;
+    });
+  }
+
+  String? receiptDateError(String? value) {
+    final input = (value ?? '').trim();
+    final parsed = DateTime.tryParse(input);
+    final today = DateTime.now().toUtc();
+    final currentDay = DateTime.utc(today.year, today.month, today.day);
+    if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(input) ||
+        parsed == null ||
+        dateText(parsed) != input) {
+      return 'Enter a valid date as YYYY-MM-DD.';
+    }
+    final day = DateTime.utc(parsed.year, parsed.month, parsed.day);
+    if (day.isAfter(currentDay) ||
+        day.isBefore(currentDay.subtract(const Duration(days: 3653)))) {
+      return 'Choose a date within the last ten years, up to today.';
+    }
+    return null;
+  }
+
+  Widget receiptCategoryPicker() => FormField<String>(
+    validator: (_) =>
+        category.text.trim().isEmpty ? 'Choose a category.' : null,
+    builder: (field) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Category (required)',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final name in {
+              ...widget.categories,
+              if (category.text.isNotEmpty) category.text,
+            })
+              ChoiceChip(
+                label: Text(name),
+                selected: category.text == name,
+                onSelected: saving
+                    ? null
+                    : (_) {
+                        setState(() => category.text = name);
+                        field.didChange(name);
+                      },
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          rememberedCategory != null && category.text == rememberedCategory
+              ? 'Remembered category. Tap a chip to change it.'
+              : 'This category will be remembered for this merchant when saved.',
+        ),
+        if (field.hasError)
+          Text(
+            field.errorText!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+      ],
+    ),
+  );
+
   Future<void> save() async {
     if (saving || !form.currentState!.validate()) return;
     setState(() {
@@ -572,8 +692,11 @@ class _AddPageState extends State<AddPage> {
         'kind': kind,
         'amount_minor': parseAmount(amount.text),
         'category': category.text.trim(),
-        'description': description.text.trim(),
-        'date': dateText(date),
+        'description': scanned
+            ? '${merchant.text.trim()}${receiptCurrency == 'KZT' ? '' : ' (${receiptTotal.text.trim()} $receiptCurrency)'}${description.text.trim().isEmpty ? '' : ' - ${description.text.trim()}'}'
+            : description.text.trim(),
+        'date': scanned ? receiptDate.text.trim() : dateText(date),
+        if (scanned) 'merchant': merchant.text.trim(),
       });
       if (mounted) Navigator.pop(context, true);
     } catch (_) {
@@ -590,120 +713,224 @@ class _AddPageState extends State<AddPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Add transaction')),
+    appBar: AppBar(title: Text(scanned ? 'Review receipt' : 'Add transaction')),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 600),
         child: Form(
           key: form,
-          child: ListView(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: kind,
-                decoration: const InputDecoration(labelText: 'Type'),
-                items: const [
-                  DropdownMenuItem(value: 'expense', child: Text('Expense')),
-                  DropdownMenuItem(value: 'income', child: Text('Income')),
-                ],
-                onChanged: saving
-                    ? null
-                    : (value) => setState(() => kind = value!),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: amount,
-                enabled: !saving,
-                decoration: const InputDecoration(
-                  labelText: 'Amount in KZT',
-                  hintText: '1500.00',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                validator: (value) => parseAmount(value ?? '') == null
-                    ? 'Enter a positive amount with up to two decimal places.'
-                    : null,
-              ),
-              const SizedBox(height: 20),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_month),
-                label: Text('Date: ${dateText(date)}'),
-                onPressed: saving
-                    ? null
-                    : () async {
-                        final selected = await showDatePicker(
-                          context: context,
-                          initialDate: date,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now().toUtc(),
-                        );
-                        if (selected != null && mounted) {
-                          setState(() => date = selected);
-                        }
-                      },
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: category,
-                enabled: !saving && !suggesting,
-                maxLength: 100,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  hintText: 'Groceries',
-                ),
-                validator: (value) =>
-                    (value ?? '').trim().isEmpty ? 'Enter a category.' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: description,
-                enabled: !saving && !suggesting,
-                maxLength: 1000,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                ),
-              ),
-              if (kind == 'expense') ...[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: saving || suggesting ? null : suggest,
-                    icon: const Icon(Icons.auto_fix_high),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (kind == 'expense') ...[
+                  OutlinedButton.icon(
+                    onPressed: saving || suggesting ? null : scanReceipt,
+                    icon: const Icon(Icons.document_scanner_outlined),
                     label: Text(
-                      suggesting ? 'Finding a category...' : 'Suggest category',
+                      scanned ? 'Scan another receipt' : 'Scan receipt',
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                if (scanned) ...[
+                  const Text(
+                    'Review every field. Empty fields need your input. Nothing is saved until you tap Save transaction.',
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    key: const ValueKey('receipt-merchant'),
+                    controller: merchant,
+                    enabled: !saving,
+                    maxLength: 200,
+                    decoration: const InputDecoration(labelText: 'Merchant'),
+                    validator: (value) => (value ?? '').trim().isEmpty
+                        ? 'Enter the merchant name.'
+                        : null,
+                    onChanged: (_) => setState(() {
+                      category.clear();
+                      rememberedCategory = null;
+                    }),
+                  ),
+                  const SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(receiptCurrency),
+                    initialValue: receiptCurrency,
+                    decoration: const InputDecoration(
+                      labelText: 'Receipt currency',
+                    ),
+                    items: [
+                      for (final code in ['KZT', 'RUB', 'USD', 'EUR'])
+                        DropdownMenuItem(value: code, child: Text(code)),
+                    ],
+                    validator: (value) =>
+                        value == null ? 'Choose the receipt currency.' : null,
+                    onChanged: saving
+                        ? null
+                        : (value) => setState(() {
+                            receiptCurrency = value;
+                            amount.text = value == 'KZT'
+                                ? receiptTotal.text
+                                : '';
+                          }),
+                  ),
+                  if (receiptCurrency != 'KZT') ...[
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      key: const ValueKey('receipt-total'),
+                      controller: receiptTotal,
+                      enabled: !saving,
+                      decoration: const InputDecoration(
+                        labelText: 'Original receipt total',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      validator: (value) => parseAmount(value ?? '') == null
+                          ? 'Enter the positive receipt total.'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Your ledger uses KZT. Enter the converted KZT amount below. Currency conversion is manual.',
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                ] else
+                  DropdownButtonFormField<String>(
+                    initialValue: kind,
+                    decoration: const InputDecoration(labelText: 'Type'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'expense',
+                        child: Text('Expense'),
+                      ),
+                      DropdownMenuItem(value: 'income', child: Text('Income')),
+                    ],
+                    onChanged: saving
+                        ? null
+                        : (value) => setState(() => kind = value!),
+                  ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  key: const ValueKey('transaction-amount'),
+                  controller: amount,
+                  enabled: !saving,
+                  decoration: const InputDecoration(
+                    labelText: 'Amount in KZT',
+                    hintText: '1500.00',
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: (value) {
+                    if (scanned && receiptCurrency == 'KZT') {
+                      receiptTotal.text = value;
+                    }
+                  },
+                  validator: (value) => parseAmount(value ?? '') == null
+                      ? 'Enter a positive amount with up to two decimal places.'
+                      : null,
+                ),
+                const SizedBox(height: 20),
+                if (scanned)
+                  TextFormField(
+                    key: const ValueKey('receipt-date'),
+                    controller: receiptDate,
+                    enabled: !saving,
+                    decoration: const InputDecoration(
+                      labelText: 'Purchase date',
+                      hintText: 'YYYY-MM-DD',
+                    ),
+                    validator: receiptDateError,
+                  )
+                else
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.calendar_month),
+                    label: Text('Date: ${dateText(date)}'),
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            final selected = await showDatePicker(
+                              context: context,
+                              initialDate: date,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now().toUtc(),
+                            );
+                            if (selected != null && mounted) {
+                              setState(() => date = selected);
+                            }
+                          },
+                  ),
+                const SizedBox(height: 20),
+                if (scanned)
+                  receiptCategoryPicker()
+                else
+                  TextFormField(
+                    controller: category,
+                    enabled: !saving && !suggesting,
+                    maxLength: 100,
+                    decoration: const InputDecoration(
+                      labelText: 'Category',
+                      hintText: 'Groceries',
+                    ),
+                    validator: (value) => (value ?? '').trim().isEmpty
+                        ? 'Enter a category.'
+                        : null,
+                  ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: description,
+                  enabled: !saving && !suggesting,
+                  maxLength: scanned ? 700 : 1000,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Description (optional)',
                   ),
                 ),
-                if (suggestion != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Semantics(
-                      liveRegion: true,
-                      child: Text(suggestion!),
-                    ),
-                  ),
-              ],
-              if (error != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Semantics(
-                    liveRegion: true,
-                    child: Text(
-                      error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                if (kind == 'expense' && !scanned) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: saving || suggesting ? null : suggest,
+                      icon: const Icon(Icons.auto_fix_high),
+                      label: Text(
+                        suggesting
+                            ? 'Finding a category...'
+                            : 'Suggest category',
                       ),
                     ),
                   ),
+                  if (suggestion != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Semantics(
+                        liveRegion: true,
+                        child: Text(suggestion!),
+                      ),
+                    ),
+                ],
+                if (error != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: saving || suggesting ? null : save,
+                  child: Text(saving ? 'Saving...' : 'Save transaction'),
                 ),
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: saving || suggesting ? null : save,
-                child: Text(saving ? 'Saving...' : 'Save transaction'),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

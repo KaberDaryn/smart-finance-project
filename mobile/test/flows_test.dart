@@ -232,6 +232,7 @@ void main() {
       'supermarket food shopping',
     );
     await tester.ensureVisible(find.text('Suggest category'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Suggest category'));
     await tester.pumpAndSettle();
     expect(
