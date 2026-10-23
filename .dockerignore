@@ -8,3 +8,7 @@ mobile
 tests
 __pycache__
 *.py[cod]
+receipts
+receipt-data
+receipt-evaluation*.json
+receipt-ground-truth*.json

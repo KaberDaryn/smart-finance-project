@@ -5,9 +5,11 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 
 from backend.server import Handler
 from backend import auth, store
+from backend.receipt_providers import ReceiptError
 
 
 class QuietHandler(Handler):
@@ -155,6 +157,57 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.post('/transactions/import', {'csv': bad_content})[0], 400)
         _, body, _ = self.request('GET', '/transactions')
         self.assertEqual(len(json.loads(body)), 1)
+
+    @patch('backend.receipts.get_provider')
+    def test_receipt_review_save_remembers_category_for_current_user(self, get_provider):
+        photo = b'\xff\xd8\xffsynthetic-test-image'
+        recognized = {'merchant': 'ТОО "Magnum Cash&Carry" №12', 'date': '2026-01-20',
+                      'total': 1500.01, 'currency': 'KZT', 'category': 'Do not use this category'}
+        get_provider.return_value.extract.return_value = json.dumps(recognized)
+
+        def parse():
+            status, body, _ = self.request('POST', '/receipts/parse', photo, {'Content-Type': 'image/jpeg'})
+            self.assertEqual(status, 200)
+            return json.loads(body)
+
+        result = parse()
+        self.assertEqual(set(result), {'merchant', 'date', 'total', 'currency', 'category', 'category_source'})
+        self.assertIsNone(result['category'])
+        _, body, _ = self.request('GET', '/transactions')
+        self.assertEqual(json.loads(body), [])
+        self.assertEqual(self.post('/transactions', {'kind': 'expense', 'amount_minor': 150001,
+                         'merchant': result['merchant'], 'category': 'Groceries', 'date': result['date']})[0], 201)
+        self.assertEqual(parse()['category'], 'Groceries')
+        self.assertEqual(parse()['category_source'], 'remembered')
+        self.post('/transactions', {'kind': 'expense', 'amount_minor': 100, 'merchant': 'MAGNUM', 'category': 'Other'})
+        self.assertEqual(parse()['category'], 'Other')
+        _, session = self.post('/auth/register', {'username': 'receipt_second', 'password': 'SecondPassword2026!'})
+        self.authorization = 'Bearer ' + session['token']
+        self.assertIsNone(parse()['category'])
+
+    @patch('backend.receipts.get_provider')
+    def test_receipt_auth_and_bad_uploads_do_not_call_provider(self, get_provider):
+        photo = b'\xff\xd8\xffsynthetic-test-image'
+        self.assertEqual(self.request('POST', '/receipts/parse', photo,
+                         {'Content-Type': 'image/jpeg', 'Authorization': ''})[0], 401)
+        for content, headers in [(photo, {'Content-Type': 'application/json'}),
+                                 (b'not an image', {'Content-Type': 'image/jpeg'}),
+                                 (photo, {'Content-Type': 'image/jpeg', 'Content-Length': str(6 * 1024 * 1024)})]:
+            with self.subTest(headers=headers):
+                self.assertEqual(self.request('POST', '/receipts/parse', content, headers)[0], 400)
+        get_provider.assert_not_called()
+
+    @patch('backend.receipts.get_provider')
+    def test_receipt_invalid_json_and_quota_errors_do_not_crash_server(self, get_provider):
+        provider = get_provider.return_value
+        provider.extract.return_value = '{broken'
+        photo = b'\xff\xd8\xffsynthetic-test-image'
+        status, body, _ = self.request('POST', '/receipts/parse', photo, {'Content-Type': 'image/jpeg'})
+        self.assertEqual(status, 502)
+        self.assertIn('invalid JSON', json.loads(body)['error'])
+        provider.extract.side_effect = ReceiptError('Receipt scanning quota is exhausted.', 503)
+        self.assertEqual(self.request('POST', '/receipts/parse', photo, {'Content-Type': 'image/jpeg'})[0], 503)
+        self.assertEqual(self.request('GET', '/summary')[0], 200)
 
 
 if __name__ == "__main__":

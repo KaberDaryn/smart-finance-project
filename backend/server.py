@@ -7,8 +7,9 @@ from pathlib import Path
 from threading import Lock
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from . import auth, csv_import, planning, store
+from . import auth, csv_import, planning, receipts, store
 from .analytics_bridge import AnalyticsUnavailable, build_insights, classify_description
+from .receipt_providers import ReceiptError
 
 _attempt_lock = Lock()
 _attempts = {}
@@ -109,6 +110,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
+        if path == '/receipts/parse':
+            self.parse_receipt()
+            return
         routes = ('/transactions', '/transactions/import', '/analytics/classify', '/budgets', '/goals',
                   '/goals/update', '/auth/login', '/auth/register', '/auth/logout')
         if path not in routes:
@@ -170,6 +174,38 @@ class Handler(BaseHTTPRequestHandler):
             self.log_error('Data request failed')
             self.respond(500, {'error': 'Data request failed'})
             return
+
+    def parse_receipt(self):
+        try:
+            with store.connection(self.server.database) as db:
+                user = auth.current_user(db, self.headers.get('Authorization', ''))
+            if user is None:
+                self.close_connection = True
+                self.respond(401, {'error': 'Please sign in again'})
+                return
+            if self.headers.get('Transfer-Encoding'):
+                raise ValueError('Send the receipt photo with a Content-Length header')
+            length = int(self.headers.get('Content-Length', '0'))
+            if not 0 < length <= receipts.MAX_IMAGE_BYTES:
+                raise ValueError('Receipt photo must be between 1 byte and 5 MiB')
+            mime_type = self.headers.get('Content-Type', '').split(';')[0].strip().lower()
+            if mime_type not in ('image/jpeg', 'image/png', 'image/webp'):
+                raise ValueError('Send the photo as image/jpeg, image/png, or image/webp')
+            image = self.rfile.read(length)
+            if len(image) != length:
+                raise ValueError('The receipt upload is incomplete. Try again.')
+            receipt = receipts.parse(image, mime_type)
+            with store.connection(self.server.database) as db:
+                result = receipts.with_category(db, user['id'], receipt)
+            self.respond(200, result)
+        except ReceiptError as error:
+            self.respond(error.status, {'error': str(error)})
+        except (ValueError, TimeoutError) as error:
+            self.close_connection = True
+            self.respond(400, {'error': str(error) or 'The receipt upload timed out. Try again.'})
+        except Exception:
+            self.log_error('Receipt request failed')
+            self.respond(500, {'error': 'Receipt scanning failed. Enter the expense manually.'})
 
     def serve_web(self, path):
         root = Path(getattr(self.server, 'webroot', Path(__file__).resolve().parents[1] / 'web')).resolve()

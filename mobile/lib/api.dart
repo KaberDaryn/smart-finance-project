@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 const apiBase = String.fromEnvironment('API_BASE_URL', defaultValue: '');
@@ -49,6 +50,18 @@ class FinanceApi {
         )
         .timeout(const Duration(seconds: 10));
     check(response, expectedStatus);
+    return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> parseReceipt(Uint8List photo) async {
+    final response = await client
+        .post(
+          Uri.parse('$apiBase/receipts/parse'),
+          headers: {...headers, 'Content-Type': 'image/jpeg'},
+          body: photo,
+        )
+        .timeout(const Duration(seconds: 60));
+    check(response, 200);
     return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
   }
 }

@@ -23,6 +23,9 @@ services:
       DATABASE_URL: postgresql://smart_finance:${POSTGRES_PASSWORD:-local-dev-only}@db:5432/smart_finance
       HOST: 0.0.0.0
       PORT: 8000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      RECEIPT_PROVIDER: ${RECEIPT_PROVIDER:-gemini}
+      RECEIPT_MODEL: ${RECEIPT_MODEL:-gemini-3.8-flash}
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

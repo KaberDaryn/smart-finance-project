@@ -6,10 +6,17 @@ __pycache__/
 !.env.example
 data/
 .dart_tool/
+.flutter-plugins-dependencies
 build/
 .idea/
 *.log
 mobile/android/local.properties
+
+# Keep receipt images, labels, and evaluation output local.
+receipts/
+receipt-data/
+receipt-evaluation*.json
+receipt-ground-truth*.json
 
 # Reports are maintained outside this repository.
 docs/REPORT*
