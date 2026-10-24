@@ -21,3 +21,5 @@ receipt-ground-truth*.json
 # Reports are maintained outside this repository.
 docs/REPORT*
 scripts/export_report.py
+backend/venv/
+smart-finance-project.zip

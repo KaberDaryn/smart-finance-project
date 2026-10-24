@@ -59,39 +59,75 @@ class _ImportPageState extends State<ImportPage> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
         child: ListView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
             const Text(
-              'Paste CSV data from a text file or spreadsheet. Amounts are in KZT. All rows are checked before anything is saved.',
-            ),
-            const SizedBox(height: 16),
-            const SelectableText(
-              'date,kind,amount,category,description\n2025-01-15,expense,1500.00,Groceries,Food shopping',
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: csv,
-              enabled: !busy,
-              minLines: 8,
-              maxLines: 18,
-              maxLength: 120000,
-              decoration: const InputDecoration(
-                labelText: 'CSV data',
-                alignLabelWithHint: true,
+              'YOUR MONEY MOVEMENT',
+              style: TextStyle(
+                color: Color(0xFF87928C),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.4,
               ),
             ),
-            if (error != null)
-              Semantics(
-                liveRegion: true,
-                child: Text(
-                  error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: 8),
+            Text(
+              'Import transactions',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Bring your transactions into one place.',
+              style: TextStyle(color: Color(0xFF87928C)),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Paste CSV data from a text file or spreadsheet. Amounts are in KZT. All rows are checked before anything is saved.',
+                    ),
+                    const SizedBox(height: 16),
+                    const SelectableText(
+                      'date,kind,amount,category,description\n2025-01-15,expense,1500.00,Groceries,Food shopping',
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: csv,
+                      enabled: !busy,
+                      minLines: 8,
+                      maxLines: 18,
+                      maxLength: 120000,
+                      decoration: const InputDecoration(
+                        labelText: 'CSV data',
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    if (error != null)
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          error!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: busy ? null : submit,
+                      child: Text(
+                        busy ? 'Importing...' : 'Import transactions',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: busy ? null : submit,
-              child: Text(busy ? 'Importing...' : 'Import transactions'),
             ),
           ],
         ),

@@ -12,7 +12,12 @@ from urllib.error import HTTPError, URLError
 from backend import auth, receipts, store
 from backend.evaluate_receipts import evaluate
 from backend.merchant_categories import lookup_category, merchant_key
-from backend.receipt_providers import GeminiProvider, ReceiptError, get_provider
+from backend.receipt_providers import (
+    GEMINI_REQUEST_TIMEOUT_SECONDS,
+    GeminiProvider,
+    ReceiptError,
+    get_provider,
+)
 
 
 PHOTO = b'\xff\xd8\xff' + b'synthetic-test-image'
@@ -154,6 +159,7 @@ class ProviderTests(unittest.TestCase):
             'parts': [{'text': json.dumps(RECOGNIZED)}]}}]}).encode())
         urlopen.return_value = response
         self.assertEqual(json.loads(GeminiProvider().extract(PHOTO, 'image/jpeg')), RECOGNIZED)
+        self.assertEqual(urlopen.call_args.kwargs['timeout'], GEMINI_REQUEST_TIMEOUT_SECONDS)
         request = urlopen.call_args.args[0]
         self.assertNotIn('test-key', request.full_url)
         self.assertEqual(request.get_header('X-goog-api-key'), 'test-key')

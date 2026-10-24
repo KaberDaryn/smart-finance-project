@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 const apiBase = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+const receiptRequestTimeout = Duration(seconds: 150);
 
 class FinanceApi {
   FinanceApi(this.client, {this.token, this.onUnauthorized});
@@ -60,7 +61,7 @@ class FinanceApi {
           headers: {...headers, 'Content-Type': 'image/jpeg'},
           body: photo,
         )
-        .timeout(const Duration(seconds: 60));
+        .timeout(receiptRequestTimeout);
     check(response, 200);
     return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
   }

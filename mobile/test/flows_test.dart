@@ -25,6 +25,8 @@ MockClient mockApi({
   bool failInsights = false,
   bool failSave = false,
   List<Map<String, dynamic>>? rows,
+  List<Map<String, dynamic>>? budgetRows,
+  Map<String, dynamic>? analyticsData,
   void Function(Map<String, dynamic>)? onSave,
 }) {
   final items = rows ?? <Map<String, dynamic>>[];
@@ -50,7 +52,7 @@ MockClient mockApi({
         }
         return jsonResponse(items);
       case '/budgets':
-        return jsonResponse(request.method == 'POST' ? {} : []);
+        return jsonResponse(request.method == 'POST' ? {} : budgetRows ?? []);
       case '/goals':
         return jsonResponse(
           request.method == 'POST' ? {} : [],
@@ -64,11 +66,14 @@ MockClient mockApi({
         });
       case '/analytics':
         if (failInsights) return jsonResponse({}, 500);
-        return jsonResponse({
-          'categories': [],
-          'months': [],
-          'forecast': {'status': 'insufficient_data'},
-        });
+        return jsonResponse(
+          analyticsData ??
+              {
+                'categories': [],
+                'months': [],
+                'forecast': {'status': 'insufficient_data'},
+              },
+        );
       case '/analytics/classify':
         return jsonResponse({'category': 'Groceries', 'confidence': 0.8});
       default:
@@ -148,6 +153,64 @@ void main() {
     expect(find.text('Add transaction'), findsOneWidget);
   });
 
+  testWidgets('overview shows account totals and cash flow', (tester) async {
+    await tester.pumpWidget(
+      FinanceApp(
+        initialToken: 'test-token',
+        client: mockApi(rows: [sampleTransaction()]),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Total balance'), findsOneWidget);
+    expect(find.text('Total income'), findsOneWidget);
+    expect(find.text('Total expenses'), findsOneWidget);
+    expect(find.text('Cash flow'), findsOneWidget);
+  });
+
+  testWidgets('insights show live category and budget data', (tester) async {
+    final currentMonth = DateTime.now().toUtc().toIso8601String().substring(
+      0,
+      7,
+    );
+    await tester.pumpWidget(
+      FinanceApp(
+        initialToken: 'test-token',
+        client: mockApi(
+          rows: [sampleTransaction()],
+          budgetRows: [
+            {
+              'id': 1,
+              'month': currentMonth,
+              'category': 'Groceries',
+              'amount_minor': 100000,
+              'spent_minor': 85000,
+              'remaining_minor': 15000,
+              'over_budget': false,
+            },
+          ],
+          analyticsData: {
+            'categories': [
+              {'category': 'Groceries', 'amount_minor': 85000, 'share': 1.0},
+            ],
+            'months': [
+              {'month': currentMonth, 'expense_minor': 85000},
+            ],
+            'forecast': {'status': 'unavailable'},
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Insights'));
+    await tester.pumpAndSettle();
+    expect(find.text('Expenses by category'), findsOneWidget);
+    expect(find.text('Top category'), findsOneWidget);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -1500));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('You have used 85%'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('connection error offers retry', (tester) async {
     await tester.pumpWidget(
       FinanceApp(initialToken: 'test-token', client: mockApi(fail: true)),
@@ -165,7 +228,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Groceries'), findsOneWidget);
+    await tester.tap(find.text('Transactions'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Groceries'), findsOneWidget);
     await tester.tap(find.text('Insights'));
     await tester.pumpAndSettle();
     expect(
@@ -277,7 +344,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Transactions'));
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'no-match');
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -900));
     await tester.pumpAndSettle();
     expect(find.textContaining('No matching transactions'), findsOneWidget);
   });

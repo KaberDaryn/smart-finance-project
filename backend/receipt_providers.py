@@ -19,6 +19,7 @@ RECEIPT_PROMPT = (
     'currency: the currency code; if it is not stated explicitly, infer it from the receipt context. '
     'If a field is not visible or you are not sure, set it to null. Do not invent anything.'
 )
+GEMINI_REQUEST_TIMEOUT_SECONDS = 120
 
 
 class ReceiptError(Exception):
@@ -57,7 +58,7 @@ class GeminiProvider:
             data=body, headers={'Content-Type': 'application/json', 'x-goog-api-key': self.key}, method='POST',
         )
         try:
-            with urlopen(request, timeout=45) as response:
+            with urlopen(request, timeout=GEMINI_REQUEST_TIMEOUT_SECONDS) as response:
                 raw = response.read(1024 * 1024 + 1)
             if len(raw) > 1024 * 1024:
                 raise ReceiptError('Receipt recognition returned too much data. Try another photo.')

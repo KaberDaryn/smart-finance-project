@@ -19,7 +19,7 @@ All fields can be null. `category_source` is `remembered` only when a category i
 
 The server strips optional JSON fences and validates the response object. Missing, uncertain, or invalid fields become null so the client requires review. Dates must be ISO calendar dates within the last 3653 days and no later than today (UTC). Totals must be finite positive numbers, at most 10^10 major units, and exact to two decimal places or fewer. This matches the existing ledger's 10^12 minor-unit limit. Currencies are limited to KZT/RUB/USD/EUR. Merchant names must contain a name and be at most 200 characters.
 
-Bad uploads return 400, missing/expired sessions return 401, and unreadable service responses return 502. Missing keys, unsupported provider configuration, quota exhaustion, and service unavailability return 503. Provider timeouts return 504. Errors contain a user-readable message, never the key or raw service response. The client offers retry and manual entry.
+Bad uploads return 400, missing/expired sessions return 401, and unreadable service responses return 502. Missing keys, unsupported provider configuration, quota exhaustion, and service unavailability return 503. Gemini requests may take up to 120 seconds; the client waits up to 150 seconds for the complete response before showing a timeout message. Provider timeouts return 504. Errors contain a user-readable message, never the key or raw service response. The client offers retry and manual entry.
 
 ## Storage
 

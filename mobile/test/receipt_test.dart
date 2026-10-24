@@ -347,4 +347,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('42.50'), findsOneWidget);
   });
+
+  testWidgets('recognition timeouts show a retry message', (tester) async {
+    final requested = Completer<void>();
+    final api = FinanceApi(
+      MockClient((request) async {
+        requested.complete();
+        throw TimeoutException('request timed out');
+      }),
+    );
+    await openForm(tester, api);
+    await scan(tester, requested);
+    expect(
+      find.text(
+        'Receipt recognition took too long. Try again or enter the expense manually.',
+      ),
+      findsOneWidget,
+    );
+  });
 }

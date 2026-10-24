@@ -83,107 +83,245 @@ class _PlanningPageState extends State<PlanningPage> {
     }
     final month = dateText(DateTime.now().toUtc()).substring(0, 7);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 110),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [
-        Text('Planning', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 24),
-        Text('Budgets · $month', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
         const Text(
-          'Category budgets use the same category names as your expenses. An overall budget covers all expenses.',
-        ),
-        if (budgets.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text('No budget set for this month.'),
+          'MAKE YOUR MONEY GO FURTHER',
+          style: TextStyle(
+            color: Color(0xFF87928C),
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.4,
           ),
-        for (final budget in budgets)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Planning',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Build better habits one month at a time.',
+          style: TextStyle(color: Color(0xFF87928C)),
+        ),
+        const SizedBox(height: 20),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  budget['category'] == '*'
-                      ? 'All expenses'
-                      : budget['category'] as String,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Text(
-                  '${money(budget['spent_minor'] as int)} spent of ${money(budget['amount_minor'] as int)}',
-                ),
-                if (budget['over_budget'] == true)
-                  Text(
-                    'Above budget by ${money(-(budget['remaining_minor'] as int))}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Monthly budgets',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Track spending against your limits · $month',
+                            style: const TextStyle(
+                              color: Color(0xFF87928C),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                else
-                  Text('${money(budget['remaining_minor'] as int)} remaining'),
-              ],
-            ),
-          ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            onPressed: () => add(false),
-            icon: const Icon(Icons.add),
-            label: const Text('Set a budget'),
-          ),
-        ),
-        const Divider(height: 40),
-        Text('Savings goals', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        const Text(
-          'Track amounts you have set aside. Updating a goal does not move money or change your transactions.',
-        ),
-        if (goals.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text('Add a goal to track your progress.'),
-          ),
-        for (final goal in goals)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  goal['name'] as String,
-                  style: Theme.of(context).textTheme.titleMedium,
+                    IconButton(
+                      tooltip: 'Set a budget',
+                      onPressed: () => add(false),
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${money(goal['saved_minor'] as int)} of ${money(goal['target_minor'] as int)}',
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value:
-                      (goal['saved_minor'] as int) /
-                      (goal['target_minor'] as int),
-                  semanticsLabel: '${goal['name']} progress',
-                ),
-                Semantics(
-                  container: true,
-                  explicitChildNodes: true,
-                  child: TextButton(
-                    onPressed: () => update(goal),
+                if (budgets.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
                     child: Text(
-                      goal['saved_minor'] == goal['target_minor']
-                          ? 'Goal reached · update amount'
-                          : 'Update saved amount',
+                      'No budget set for this month.',
+                      style: TextStyle(color: Color(0xFF87928C)),
                     ),
                   ),
+                for (final budget in budgets)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                budget['category'] == '*'
+                                    ? 'All expenses'
+                                    : budget['category'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${money(budget['spent_minor'] as int)} / ${money(budget['amount_minor'] as int)}',
+                              style: const TextStyle(
+                                color: Color(0xFF647269),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 9),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: LinearProgressIndicator(
+                            value:
+                                ((budget['spent_minor'] as int) /
+                                        (budget['amount_minor'] as int))
+                                    .clamp(0, 1)
+                                    .toDouble(),
+                            minHeight: 8,
+                            backgroundColor: const Color(0xFFE9F0EA),
+                            color: budget['over_budget'] == true
+                                ? const Color(0xFFC96A56)
+                                : const Color(0xFF3D8060),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          budget['over_budget'] == true
+                              ? 'Above budget by ${money(-(budget['remaining_minor'] as int))}'
+                              : '${money(budget['remaining_minor'] as int)} remaining',
+                          style: TextStyle(
+                            color: budget['over_budget'] == true
+                                ? const Color(0xFFB54737)
+                                : const Color(0xFF87928C),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => add(false),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Set a budget'),
                 ),
               ],
             ),
           ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            onPressed: () => add(true),
-            icon: const Icon(Icons.add),
-            label: const Text('Add a savings goal'),
+        ),
+        const SizedBox(height: 14),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Savings goals',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Keep your goals in sight as you save.',
+                            style: TextStyle(
+                              color: Color(0xFF87928C),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Add a savings goal',
+                      onPressed: () => add(true),
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
+                ),
+                if (goals.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Text(
+                      'Add a goal to track your progress.',
+                      style: TextStyle(color: Color(0xFF87928C)),
+                    ),
+                  ),
+                for (final goal in goals)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                goal['name'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${money(goal['saved_minor'] as int)} / ${money(goal['target_minor'] as int)}',
+                              style: const TextStyle(
+                                color: Color(0xFF647269),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 9),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: LinearProgressIndicator(
+                            value:
+                                ((goal['saved_minor'] as int) /
+                                        (goal['target_minor'] as int))
+                                    .clamp(0, 1)
+                                    .toDouble(),
+                            minHeight: 8,
+                            backgroundColor: const Color(0xFFE9F0EA),
+                            color: const Color(0xFF3D8060),
+                            semanticsLabel: '${goal['name']} progress',
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => update(goal),
+                            child: Text(
+                              goal['saved_minor'] == goal['target_minor']
+                                  ? 'Goal reached · update amount'
+                                  : 'Update progress',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => add(true),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add a savings goal'),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -257,59 +395,96 @@ class _PlanningFormState extends State<PlanningForm> {
         child: Form(
           key: form,
           child: ListView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
             children: [
-              if (!widget.goal)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Cover all expenses'),
-                  value: overall,
-                  onChanged: busy
-                      ? null
-                      : (value) => setState(() => overall = value),
+              Text(
+                widget.goal ? 'BUILD YOUR FUTURE' : 'PLAN YOUR SPENDING',
+                style: const TextStyle(
+                  color: Color(0xFF87928C),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
                 ),
-              if (widget.goal || !overall) ...[
-                TextFormField(
-                  controller: name,
-                  enabled: !busy,
-                  maxLength: 100,
-                  decoration: InputDecoration(
-                    labelText: widget.goal ? 'Goal name' : 'Expense category',
-                  ),
-                  validator: (value) =>
-                      (value ?? '').trim().isEmpty ? 'Enter a name.' : null,
-                ),
-                const SizedBox(height: 20),
-              ],
-              TextFormField(
-                controller: amount,
-                enabled: !busy,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: widget.goal
-                      ? 'Target amount in KZT'
-                      : 'Monthly limit in KZT',
-                ),
-                validator: (value) => parseAmount(value ?? '') == null
-                    ? 'Enter a positive amount with up to two decimal places.'
-                    : null,
               ),
-              if (error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                    error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+              const SizedBox(height: 8),
+              Text(
+                widget.goal ? 'New savings goal' : 'Monthly budget',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.goal
+                    ? 'Choose a target and keep track of your progress.'
+                    : 'Set a limit that works for your monthly expenses.',
+                style: const TextStyle(color: Color(0xFF87928C)),
+              ),
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!widget.goal)
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Cover all expenses'),
+                          value: overall,
+                          onChanged: busy
+                              ? null
+                              : (value) => setState(() => overall = value),
+                        ),
+                      if (widget.goal || !overall) ...[
+                        TextFormField(
+                          controller: name,
+                          enabled: !busy,
+                          maxLength: 100,
+                          decoration: InputDecoration(
+                            labelText: widget.goal
+                                ? 'Goal name'
+                                : 'Expense category',
+                          ),
+                          validator: (value) => (value ?? '').trim().isEmpty
+                              ? 'Enter a name.'
+                              : null,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                      TextFormField(
+                        controller: amount,
+                        enabled: !busy,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: widget.goal
+                              ? 'Target amount in KZT'
+                              : 'Monthly limit in KZT',
+                        ),
+                        validator: (value) => parseAmount(value ?? '') == null
+                            ? 'Enter a positive amount with up to two decimal places.'
+                            : null,
+                      ),
+                      if (error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            error!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: busy ? null : save,
+                        child: Text(busy ? 'Saving...' : 'Save'),
+                      ),
+                    ],
                   ),
                 ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: busy ? null : save,
-                child: Text(busy ? 'Saving...' : 'Save'),
               ),
             ],
           ),
@@ -383,42 +558,75 @@ class _GoalProgressFormState extends State<GoalProgressForm> {
         child: Form(
           key: form,
           child: ListView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
             children: [
+              const Text(
+                'MAKE YOUR MONEY GO FURTHER',
+                style: TextStyle(
+                  color: Color(0xFF87928C),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Update savings progress',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
               Text(
                 widget.goal['name'] as String,
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: const TextStyle(color: Color(0xFF87928C)),
               ),
-              Text('Target: ${money(widget.goal['target_minor'] as int)}'),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: amount,
-                enabled: !busy,
-                decoration: const InputDecoration(
-                  labelText: 'Total saved in KZT',
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Target: ${money(widget.goal['target_minor'] as int)}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: amount,
+                        enabled: !busy,
+                        decoration: const InputDecoration(
+                          labelText: 'Total saved in KZT',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (RegExp(r'^0(\.0{1,2})?$').hasMatch(text)) {
+                            return null;
+                          }
+                          final minor = parseAmount(text);
+                          return minor == null ||
+                                  minor > (widget.goal['target_minor'] as int)
+                              ? 'Enter an amount between zero and the target.'
+                              : null;
+                        },
+                      ),
+                      if (error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(error!),
+                        ),
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: busy ? null : save,
+                        child: Text(busy ? 'Saving...' : 'Save progress'),
+                      ),
+                    ],
+                  ),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                validator: (value) {
-                  final text = value?.trim() ?? '';
-                  if (RegExp(r'^0(\.0{1,2})?$').hasMatch(text)) return null;
-                  final minor = parseAmount(text);
-                  return minor == null ||
-                          minor > (widget.goal['target_minor'] as int)
-                      ? 'Enter an amount between zero and the target.'
-                      : null;
-                },
-              ),
-              if (error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(error!),
-                ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: busy ? null : save,
-                child: Text(busy ? 'Saving...' : 'Save progress'),
               ),
             ],
           ),

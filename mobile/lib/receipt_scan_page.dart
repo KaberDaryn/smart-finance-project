@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,6 +48,8 @@ class _ReceiptScanPageState extends State<ReceiptScanPage> {
         setState(() {
           error = failure is ApiFailure
               ? failure.message
+              : failure is TimeoutException
+              ? 'Receipt recognition took too long. Try again or enter the expense manually.'
               : failure is FormatException
               ? failure.message
               : 'Could not read this photo. Try again or enter the expense manually.';
