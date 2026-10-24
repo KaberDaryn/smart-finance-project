@@ -1,0 +1,43 @@
+digraph G {
+graph [rankdir=LR, bgcolor="white", pad="0.35", nodesep="0.3", ranksep="0.65", fontname="Arial", fontsize=18, labelloc=t, label="Smart Finance — Component View"];
+node [fontname="Arial", fontsize=13, shape=box, style="rounded,filled", color="#177b78", fillcolor="#e0f2ef", fontcolor="#18343e", margin="0.14,0.11"];
+edge [fontname="Arial", fontsize=10, color="#476575", fontcolor="#344c5b", arrowsize=0.7];
+subgraph cluster_clients {
+label="Client boundary"; color="#a4bebd"; style="rounded";
+flutter [label="Flutter client\nNative / web build per target", shape=box, fillcolor="#e0f2ef"];
+legacy [label="Separate JavaScript client\nLegacy / if present in snapshot", shape=box, fillcolor="#edf2f7"];
+}
+subgraph cluster_server {
+label="Python backend boundary"; color="#a4bebd"; style="rounded";
+routes [label="HTTP handler\nbackend/server.py\nRouting, auth gates, JSON errors", shape=box, fillcolor="#e0f2ef"];
+auth [label="Authentication\nbackend/auth.py", shape=box, fillcolor="#e0f2ef"];
+store [label="Financial storage API\nbackend/store.py", shape=box, fillcolor="#e0f2ef"];
+planning [label="Budgets / goals / CSV\nplanning.py / csv_import.py", shape=box, fillcolor="#e0f2ef"];
+bridge [label="Analytics bridge\nbackend/analytics_bridge.py", shape=box, fillcolor="#e0f2ef"];
+receipt [label="Receipt validation\nbackend/receipts.py", shape=box, fillcolor="#e0f2ef"];
+adapter [label="Receipt provider adapter\nbackend/receipt_providers.py", shape=box, fillcolor="#e0f2ef"];
+memory [label="Confirmed merchant categories\nbackend/merchant_categories.py", shape=box, fillcolor="#e0f2ef"];
+}
+subgraph cluster_analysis {
+label="Local analytics"; color="#a4bebd"; style="rounded";
+analytics [label="Local analytical package\nNB descriptions / moving mean", shape=box, fillcolor="#e0f2ef"];
+}
+db [label="SQLite OR PostgreSQL\nUsers, sessions, transactions,\nbudgets, goals, merchant memory", shape=cylinder, fillcolor="#fff5df"];
+provider [label="External Gemini service\nImage to proposed JSON fields", shape=box, fillcolor="#edf2f7"];
+flutter -> routes [label="Authenticated JSON / image bytes", style=solid];
+legacy -> routes [label="JSON / image bytes; feature parity not assumed", style=dashed];
+routes -> auth [label="Validate current account", style=solid];
+routes -> store [label="Financial records / summaries", style=solid];
+routes -> planning [label="Planning / import operations", style=solid];
+routes -> bridge [label="Classification / insights", style=solid];
+bridge -> analytics [label="Call local analytical functions", style=solid];
+routes -> receipt [label="Validate extraction request / fields", style=solid];
+receipt -> adapter [label="Use configured provider", style=solid];
+adapter -> provider [label="Server-side key / request", style=solid];
+receipt -> memory [label="Lookup user-confirmed category", style=solid];
+store -> memory [label="Confirmed expense + memory atomic save", style=solid];
+auth -> db [label="Account / hashed session state", style=solid];
+store -> db [label="Transactional reads / writes", style=solid];
+planning -> db [label="Budget / goal / import data", style=solid];
+memory -> db [label="User-scoped merchant mapping", style=solid];
+}
