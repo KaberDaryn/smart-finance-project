@@ -1,0 +1,26 @@
+
+digraph G {
+ graph [rankdir=LR, bgcolor="white", pad="0.3", nodesep="0.36", ranksep="0.6", labelloc="t",
+        label="SMART FINANCE — USE CASE DIAGRAM", fontsize=22, fontname="Arial Bold"];
+ node [fontname="Arial", fontsize=11, margin="0.15,0.10", color="#355070", fontcolor="#1D2D44"];
+ edge [fontname="Arial", fontsize=9, color="#526777", arrowsize=0.75];
+ user [label="Individual\\nuser", shape=ellipse, style="filled", fillcolor="#D8E8F5"];
+ provider [label="External Gemini\\nprovider", shape=ellipse, style="filled,dashed", fillcolor="#FCE8C8", color="#B7791F"];
+ subgraph cluster_app {
+  label="Smart Finance system boundary"; style="rounded"; color="#7C8DA6"; penwidth=1.4; fontsize=14; fontname="Arial Bold";
+  node [shape=ellipse, style="filled", fillcolor="#EAF2F8"];
+  account [label="Manage account / session\\nFR01"];
+  record [label="Record income / expense\\nFR03–FR04"];
+  history [label="Search / filter history\\nFR05"];
+  csv [label="Import CSV\\nFR06"];
+  receipt [label="Request receipt assistance\\nFR07"];
+  review [label="Review / correct fields\\nthen explicitly save\\nFR08"];
+  category [label="Get editable category\\nsuggestion FR09"];
+  insights [label="View summaries / forecast\\nFR10–FR11"];
+  planning [label="Manage budgets / savings goals\\nFR12–FR13"];
+ }
+ user -> account; user -> record; user -> history; user -> csv; user -> receipt; user -> review; user -> category; user -> insights; user -> planning;
+ receipt -> provider [style=dashed, label="only after consent"];
+ provider -> review [style=dashed, label="proposed fields / failure"];
+ receipt -> review [style=dashed, label="proposal; no auto-save"];
+}

@@ -1,0 +1,35 @@
+
+digraph G {
+ graph [rankdir=TB, bgcolor="white", pad="0.3", nodesep="0.4", ranksep="0.55", labelloc="t",
+        label="SMART FINANCE — COMPONENT DIAGRAM", fontsize=22, fontname="Arial Bold", compound=true];
+ node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, margin="0.16,0.11", color="#355070", fillcolor="#EAF2F8", fontcolor="#1D2D44"];
+ edge [fontname="Arial", fontsize=9, color="#526777", arrowsize=0.75];
+ subgraph cluster_client {
+  label="CLIENTS"; style="rounded,filled"; color="#9CBAD0"; fillcolor="#F5F9FC"; fontsize=13; fontname="Arial Bold";
+  flutter [label="Flutter client\\nlib/main.dart"];
+  web [label="Separate JavaScript client\\nweb/app.js / web/index.html"];
+ }
+ subgraph cluster_backend {
+  label="PYTHON BACKEND"; style="rounded,filled"; color="#8AB8A9"; fillcolor="#F3FAF7"; fontsize=13; fontname="Arial Bold";
+  router [label="HTTP router / auth gates\\nbackend/server.py", fillcolor="#CDE8E1"];
+  auth [label="Authentication\\nbackend/auth.py"];
+  financial [label="Financial operations\\nstore.py • planning.py • csv_import.py"];
+  receipt [label="Receipt assistance\\nreceipts.py • receipt_providers.py", fillcolor="#FCE8C8", color="#B7791F"];
+  bridge [label="Analytics bridge\\nanalytics_bridge.py"];
+ }
+ subgraph cluster_data {
+  label="DATA & ANALYTICS"; style="rounded,filled"; color="#B7A4D4"; fillcolor="#FAF7FD"; fontsize=13; fontname="Arial Bold";
+  db [label="SQLite OR PostgreSQL\\nusers • sessions • records\\nbudgets • goals • memory", shape=cylinder, fillcolor="#E9DDF7", color="#775DA6"];
+  analytics [label="Local analytics package\\nNaive Bayes category suggestion\\nThree-completed-month mean forecast", fillcolor="#E5F3E8", color="#4E8A5B"];
+  gemini [label="External Gemini API\\nImage → field proposals\\nServer-side key / quota / timeout", style="rounded,dashed,filled", fillcolor="#FCE8C8", color="#B7791F"];
+ }
+ flutter -> router [label="JSON / image bytes"];
+ web -> router [label="JSON / image bytes"];
+ router -> auth;
+ router -> financial;
+ router -> receipt [style=dashed, label="optional"];
+ router -> bridge;
+ financial -> db [dir=both, label="read / write"];
+ bridge -> analytics;
+ receipt -> gemini [style=dashed, label="after consent"];
+}

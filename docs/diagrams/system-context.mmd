@@ -1,0 +1,12 @@
+flowchart LR
+    U([Individual KZT user])
+    SF[Smart Finance<br/>Client + Python API]
+    DB[(Financial storage<br/>Records, insights, budgets, goals)]
+    G[External Gemini provider<br/>Optional receipt inference]
+    OPS([Team / local operator<br/>Deploys and configures])
+    U -->|Manual records / plans; consented image; confirmation| SF
+    SF -->|History / summaries; editable proposals / errors| U
+    SF <--> |Read / write user-scoped data| DB
+    OPS -->|Local startup / storage config; server-side provider key| SF
+    SF -.->|Image + request only after consent| G
+    G -.->|Untrusted proposals or controlled failure| SF

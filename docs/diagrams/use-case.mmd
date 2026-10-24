@@ -1,0 +1,26 @@
+flowchart LR
+    U([Individual user])
+    subgraph SF[Smart Finance system boundary]
+      A([Manage account / session<br/>FR01])
+      R([Record income / expense<br/>FR03–FR04])
+      H([Search / filter history<br/>FR05])
+      C([Import CSV<br/>FR06])
+      RC([Request receipt assistance<br/>FR07])
+      RV([Review / correct fields<br/>then explicitly save<br/>FR08])
+      CAT([Editable category suggestion<br/>FR09])
+      I([View summaries / forecast<br/>FR10–FR11])
+      P([Manage budgets / savings goals<br/>FR12–FR13])
+    end
+    G([External Gemini provider])
+    U --- A
+    U --- R
+    U --- H
+    U --- C
+    U --- RC
+    U --- RV
+    U --- CAT
+    U --- I
+    U --- P
+    RC -.->|Only after consent| G
+    G -.->|Proposed fields / failure| RV
+    RC -.->|Proposal; no automatic save| RV

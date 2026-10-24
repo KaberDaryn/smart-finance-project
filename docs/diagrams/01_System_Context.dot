@@ -1,0 +1,18 @@
+
+digraph G {
+ graph [rankdir=LR, bgcolor="white", pad="0.35", nodesep="0.5", ranksep="0.7", labelloc="t",
+        label="SMART FINANCE — SYSTEM CONTEXT", fontsize=22, fontname="Arial Bold"];
+ node [shape=box, style="rounded,filled", fontname="Arial", fontsize=12, margin="0.18,0.12", color="#355070", fillcolor="#EAF2F8", fontcolor="#1D2D44"];
+ edge [fontname="Arial", fontsize=10, color="#526777", arrowsize=0.8];
+ user [label="Individual KZT user", shape=ellipse, fillcolor="#D8E8F5"];
+ team [label="Team / local operator\\nDeploys and configures", shape=ellipse, fillcolor="#EDE7F6", color="#775DA6"];
+ app [label="Smart Finance\\nClient + Python API", fillcolor="#CDE8E1", color="#2F7D68", penwidth=1.5];
+ storage [label="Financial storage\\nRecords • insights • budgets • goals", shape=cylinder, fillcolor="#E9DDF7", color="#775DA6"];
+ gemini [label="External Gemini provider\\nOptional receipt inference", style="rounded,dashed,filled", fillcolor="#FCE8C8", color="#B7791F"];
+ user -> app [label="Manual records / plans\\nConsented image / confirmation"];
+ app -> user [label="History / summaries\\nEditable proposals / errors"];
+ app -> storage [dir=both, label="Read / write\\nuser-scoped data"];
+ team -> app [label="Local startup / storage config\\nserver-side provider key"];
+ app -> gemini [style=dashed, label="Image + request\\nafter consent"];
+ gemini -> app [style=dashed, label="Untrusted proposals\\nor controlled failure"];
+}

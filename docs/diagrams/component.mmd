@@ -1,0 +1,25 @@
+flowchart TB
+  subgraph CLIENTS
+    F[Flutter client<br/>lib/main.dart]
+    W[Separate JavaScript client<br/>web/app.js / web/index.html]
+  end
+  subgraph BACKEND[Python backend]
+    API[HTTP router / auth gates<br/>backend/server.py]
+    AUTH[Authentication<br/>backend/auth.py]
+    FIN[Financial operations<br/>store.py · planning.py · csv_import.py]
+    REC[Receipt assistance<br/>receipts.py · receipt_providers.py]
+    AB[Analytics bridge<br/>analytics_bridge.py]
+  end
+  subgraph DATA[Data and analytics]
+    DB[(SQLite OR PostgreSQL<br/>users, sessions, records,<br/>budgets, goals, memory)]
+    AN[Local analytics package<br/>Naive Bayes category suggestion<br/>Three-completed-month mean forecast]
+    GEM[External Gemini API<br/>Image to field proposals<br/>Server-side key / quota / timeout]
+  end
+  F -->|JSON / image bytes| API
+  W -->|JSON / image bytes| API
+  API --> AUTH
+  API --> FIN
+  FIN <--> DB
+  API --> AB --> AN
+  API -.->|Optional| REC
+  REC -.->|After consent| GEM
