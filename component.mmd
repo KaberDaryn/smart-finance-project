@@ -1,0 +1,42 @@
+flowchart LR
+  subgraph clients["Client boundary"]
+    flutter["Flutter client<br/>Native / web build per target"]
+    legacy["Separate JavaScript client<br/>Legacy / if present in snapshot"]
+  end
+  subgraph server["Python backend boundary"]
+    routes["HTTP handler<br/>backend/server.py<br/>Routing, auth gates, JSON errors"]
+    auth["Authentication<br/>backend/auth.py"]
+    store["Financial storage API<br/>backend/store.py"]
+    planning["Budgets / goals / CSV<br/>planning.py / csv_import.py"]
+    bridge["Analytics bridge<br/>backend/analytics_bridge.py"]
+    receipt["Receipt validation<br/>backend/receipts.py"]
+    adapter["Receipt provider adapter<br/>backend/receipt_providers.py"]
+    memory["Confirmed merchant categories<br/>backend/merchant_categories.py"]
+  end
+  subgraph analysis["Local analytics"]
+    analytics["Local analytical package<br/>NB descriptions / moving mean"]
+  end
+  db["SQLite OR PostgreSQL<br/>Users, sessions, transactions,<br/>budgets, goals, merchant memory"]
+  provider["External Gemini service<br/>Image to proposed JSON fields"]
+  flutter -->|"Authenticated JSON / image bytes"| routes
+  legacy -.->|"JSON / image bytes; feature parity not assumed"| routes
+  routes -->|"Validate current account"| auth
+  routes -->|"Financial records / summaries"| store
+  routes -->|"Planning / import operations"| planning
+  routes -->|"Classification / insights"| bridge
+  bridge -->|"Call local analytical functions"| analytics
+  routes -->|"Validate extraction request / fields"| receipt
+  receipt -->|"Use configured provider"| adapter
+  adapter -->|"Server-side key / request"| provider
+  receipt -->|"Lookup user-confirmed category"| memory
+  store -->|"Confirmed expense + memory atomic save"| memory
+  auth -->|"Account / hashed session state"| db
+  store -->|"Transactional reads / writes"| db
+  planning -->|"Budget / goal / import data"| db
+  memory -->|"User-scoped merchant mapping"| db
+  classDef external fill:#edf2f7,stroke:#718096,color:#18343e;
+  classDef core fill:#e0f2ef,stroke:#177b78,color:#18343e;
+  classDef store fill:#fff5df,stroke:#ac873b,color:#18343e;
+  class legacy,provider external;
+  class flutter,routes,auth,store,planning,bridge,receipt,adapter,memory,analytics core;
+  class db store;
