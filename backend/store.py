@@ -124,6 +124,18 @@ def insert(db, values, user_id):
     return result
 
 
+def delete(db, transaction_id, user_id):
+    if type(transaction_id) is not int:
+        raise ValueError('id must be an integer')
+    p = marker(db)
+    with transaction(db):
+        row = db.execute(f'DELETE FROM transactions WHERE id={p} AND user_id={p} RETURNING id',
+                         (transaction_id, user_id)).fetchone()
+    if row is None:
+        raise ValueError('Transaction not found')
+    return {'id': transaction_id, 'status': 'deleted'}
+
+
 def add(db, payload, user_id=None):
     values = prepare(payload)
     merchant = payload.get('merchant')
@@ -155,8 +167,16 @@ def transactions(db, user_id=None):
 def summary(db, user_id=None):
     totals = {'income': 0, 'expense': 0}
     where = 'user_id IS NULL' if user_id is None else f'user_id = {marker(db)}'
-    for row in db.execute(f'SELECT kind, SUM(amount_minor) AS total FROM transactions WHERE {where} GROUP BY kind',
-                          () if user_id is None else (user_id,)):
+    params = () if user_id is None else (user_id,)
+    for row in db.execute(f'SELECT kind, SUM(amount_minor) AS total FROM transactions WHERE {where} GROUP BY kind', params):
         totals[row['kind']] = int(row['total'])
+    month = datetime.now(timezone.utc).strftime('%Y-%m')
+    month_totals = {'income': 0, 'expense': 0}
+    for row in db.execute(f'''SELECT kind, SUM(amount_minor) AS total FROM transactions
+                              WHERE {where} AND SUBSTR(created_at, 1, 7) = {marker(db)} GROUP BY kind''', (*params, month)):
+        month_totals[row['kind']] = int(row['total'])
+    count = db.execute(f'SELECT COUNT(*) AS total FROM transactions WHERE {where}', params).fetchone()
     return {'currency': 'KZT', 'income_minor': totals['income'], 'expense_minor': totals['expense'],
-            'balance_minor': totals['income'] - totals['expense']}
+            'balance_minor': totals['income'] - totals['expense'], 'month': month,
+            'month_income_minor': month_totals['income'], 'month_expense_minor': month_totals['expense'],
+            'transaction_count': int(count['total'])}

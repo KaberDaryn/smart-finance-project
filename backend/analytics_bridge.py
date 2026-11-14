@@ -29,15 +29,19 @@ def build_insights(transactions):
         return module.build_insights(transactions)
     categories = defaultdict(int)
     months = defaultdict(int)
+    months_income = defaultdict(int)
     for row in transactions:
         if row['kind'] == 'expense':
             categories[row['category']] += row['amount_minor']
             months[row['created_at'][:7]] += row['amount_minor']
+        elif row['kind'] == 'income':
+            months_income[row['created_at'][:7]] += row['amount_minor']
     total = sum(categories.values())
     return {
         'currency': 'KZT',
         'categories': [{'category': name, 'amount_minor': amount, 'share': round(amount / total, 4)}
                        for name, amount in sorted(categories.items(), key=lambda item: (-item[1], item[0]))],
-        'months': [{'month': month, 'expense_minor': amount} for month, amount in sorted(months.items())[-12:]],
+        'months': [{'month': month, 'expense_minor': amount, 'income_minor': months_income.get(month, 0)}
+                   for month, amount in sorted(months.items())[-12:]],
         'forecast': {'status': 'unavailable', 'message': 'The forecasting module is not connected.'},
     }

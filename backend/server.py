@@ -28,6 +28,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header('Vary', 'Origin')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('Referrer-Policy', 'no-referrer')
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -113,8 +114,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/receipts/parse':
             self.parse_receipt()
             return
-        routes = ('/transactions', '/transactions/import', '/analytics/classify', '/budgets', '/goals',
-                  '/goals/update', '/auth/login', '/auth/register', '/auth/logout')
+        routes = ('/transactions', '/transactions/import', '/transactions/delete', '/analytics/classify',
+                  '/budgets', '/budgets/delete', '/goals', '/goals/update', '/goals/delete',
+                  '/auth/login', '/auth/register', '/auth/logout')
         if path not in routes:
             self.respond(404, {'error': 'Not found'})
             return
@@ -153,13 +155,19 @@ class Handler(BaseHTTPRequestHandler):
                         result = classify_description(description)
                     elif path == '/transactions/import':
                         result = csv_import.import_csv(db, payload, user_id)
+                    elif path == '/transactions/delete':
+                        result = store.delete(db, payload.get('id'), user_id)
                     elif path == '/budgets':
                         result = planning.save_budget(db, payload, user_id)
+                    elif path == '/budgets/delete':
+                        result = planning.delete_budget(db, payload, user_id)
                     elif path == '/goals':
                         result = planning.save_goal(db, payload, user_id)
                         status = 201
                     elif path == '/goals/update':
                         result = planning.update_goal(db, payload, user_id)
+                    elif path == '/goals/delete':
+                        result = planning.delete_goal(db, payload, user_id)
                     else:
                         result = store.add(db, payload, user_id)
                         status = 201

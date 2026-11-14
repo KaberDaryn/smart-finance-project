@@ -50,6 +50,18 @@ def save_budget(db, payload, user_id):
     return dict(row)
 
 
+def delete_budget(db, payload, user_id):
+    if not isinstance(payload, dict) or type(payload.get('id')) is not int:
+        raise ValueError('id must be an integer')
+    p = store.marker(db)
+    with store.transaction(db):
+        row = db.execute(f'DELETE FROM budgets WHERE id={p} AND user_id={p} RETURNING id',
+                         (payload['id'], user_id)).fetchone()
+    if row is None:
+        raise ValueError('Budget not found')
+    return {'id': payload['id'], 'status': 'deleted'}
+
+
 def goals(db, user_id):
     rows = db.execute(f'SELECT id,name,target_minor,saved_minor FROM goals WHERE user_id={store.marker(db)} ORDER BY id DESC', (user_id,))
     return [dict(row) for row in rows]
@@ -84,3 +96,15 @@ def update_goal(db, payload, user_id):
         row = db.execute(f'UPDATE goals SET saved_minor={p} WHERE id={p} AND user_id={p} RETURNING id,name,target_minor,saved_minor',
                          (saved, payload['id'], user_id)).fetchone()
     return dict(row)
+
+
+def delete_goal(db, payload, user_id):
+    if not isinstance(payload, dict) or type(payload.get('id')) is not int:
+        raise ValueError('id must be an integer')
+    p = store.marker(db)
+    with store.transaction(db):
+        row = db.execute(f'DELETE FROM goals WHERE id={p} AND user_id={p} RETURNING id',
+                         (payload['id'], user_id)).fetchone()
+    if row is None:
+        raise ValueError('Goal not found')
+    return {'id': payload['id'], 'status': 'deleted'}

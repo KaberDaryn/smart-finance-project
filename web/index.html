@@ -1,75 +1,340 @@
-﻿<!doctype html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Smart Finance — personal finance planning and expense analysis in KZT.">
+<meta name="theme-color" content="#0d4f3c">
 <title>Smart Finance — Personal finance</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-#authOverlay{position:fixed;inset:0;background:#0e2822ee;z-index:9999;display:grid;place-items:center;padding:20px;font-family:inherit}.auth-card{background:#fff;color:#18251f;width:min(420px,100%);padding:32px;border-radius:22px;box-shadow:0 30px 100px #0004}.auth-card h1{margin:12px 0 4px}.auth-card p,.auth-card small{color:#718078}.auth-card form{display:grid;gap:10px;margin:22px 0}.auth-card label{font-size:13px;font-weight:600}.auth-card input:not([type=checkbox]){padding:12px;border:1px solid #dce5df;border-radius:10px;width:100%;box-sizing:border-box}.auth-check{display:flex;gap:8px;align-items:center;font-weight:400!important}.primary-btn{padding:12px;border:0;border-radius:10px;background:#16795b;color:white;font-weight:700;cursor:pointer}.auth-card #authError{color:#b42318;font-size:13px;min-height:18px}.api-section{margin:18px 0;padding:22px;border-radius:16px;background:white}.api-section h2{font-size:18px}.budget-row{padding:14px 0;border-bottom:1px solid #e8eee9}.budget-row>div:first-child{display:flex;justify-content:space-between;gap:12px;margin-bottom:9px}.budget-row span,.budget-row small{color:#718078}.progress{height:8px;border-radius:99px;background:#edf2ee;overflow:hidden}.progress i{display:block;height:100%;background:#16805d;border-radius:99px}.small-action,.secondary-btn{border:1px solid #dce5df;background:white;border-radius:9px;padding:8px 12px;cursor:pointer}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#d9f6e8;color:#147351;font-weight:900;font-size:23px}
-.receipt-card{margin:0 0 22px;padding:22px;border:1px solid #dce9e0;border-radius:18px;background:linear-gradient(135deg,#f4fff8,#fff)}.receipt-card h2{margin:0 0 6px;font-size:19px}.receipt-card p{margin:0 0 14px}.receipt-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.receipt-controls input[type=file]{max-width:100%;padding:10px;border:1px solid #dce5df;background:#fff;border-radius:10px}.receipt-consent{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#718078;margin:12px 0}.receipt-result{margin-top:16px;padding-top:16px;border-top:1px solid #dce9e0}.receipt-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.receipt-fields label{display:grid;gap:6px;font-size:13px;font-weight:600}.receipt-fields input,.receipt-fields select{width:100%;padding:11px;border:1px solid #dce5df;border-radius:9px;background:white;box-sizing:border-box}.receipt-status{font-size:13px;margin-top:10px;min-height:18px}.receipt-status.error{color:#b42318}.receipt-status.success{color:#16795b}@media(max-width:600px){.receipt-fields{grid-template-columns:1fr}}
-</style></head>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css?v=7">
+<script>
+/* Apply the saved theme before first paint. Dark by default; 'system' follows the OS. */
+try{var t=localStorage.getItem('sf_theme')||'dark';
+document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;}catch(e){document.documentElement.dataset.theme='dark';}
+</script>
+</head>
 <body>
-<div class="app-shell">
+
+<!-- Inline icon library (stroke, 24x24, currentColor) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l2.3 6.2L20.5 11.5l-6.2 2.3L12 20l-2.3-6.2L3.5 11.5l6.2-2.3z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M17 4l4 4-4 4"/><path d="M21 8H8"/><path d="M7 12l-4 4 4 4"/><path d="M3 16h13"/></symbol>
+    <symbol id="i-pie" viewBox="0 0 24 24"><path d="M21.2 15.9A9 9 0 1 1 8 2.8"/><path d="M12 12V3a9 9 0 0 1 9 9z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7H5a2 2 0 0 1 0-4h12v4"/><path d="M4 5.5V18a2.5 2.5 0 0 0 2.5 2.5H20a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1"/><path d="M16.5 13.5h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L20 7"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2"/><path d="M6.5 7l1 12.5A1.5 1.5 0 0 0 9 21h6a1.5 1.5 0 0 0 1.5-1.5l1-12.5"/><path d="M10 11.5v5M14 11.5v5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4.5L20 8.5a2.1 2.1 0 0 0-3-3L5.5 17z"/><path d="M14.5 7l3 3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3h14v18l-2.3-1.6L14.3 21l-2.3-1.6L9.7 21l-2.4-1.6L5 21z"/><path d="M9 8h6M9 12h6"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8.5V6.5A2.5 2.5 0 0 1 6.5 4H8.5M15.5 4h2A2.5 2.5 0 0 1 20 6.5v2M20 15.5v2a2.5 2.5 0 0 1-2.5 2.5h-2M8.5 20H6.5A2.5 2.5 0 0 1 4 17.5v-2"/><rect x="8" y="8" width="8" height="8" rx="1.5"/><path d="M10.5 10.5h3M10.5 13h3"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><path d="M13.5 13.5h3v3h-3zM20 13.5v3M13.5 20h3M20 18.5V20h-1.5"/></symbol>
+    <symbol id="i-trend-up" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+    <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/></symbol>
+    <symbol id="i-arrow-in" viewBox="0 0 24 24"><path d="M4 4l7.5 7.5"/><path d="M11.5 4.5v7h7"/><path d="M20 20l-8.5-8.5"/></symbol>
+    <symbol id="i-arrow-out" viewBox="0 0 24 24"><path d="M20 4l-7.5 7.5"/><path d="M12.5 11.5v7h-7"/><path d="M4 20l8.5-8.5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 2.5V7M16 2.5V7"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 8l-4 4 4 4M6 12h9"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 4.2L2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9.5v4"/><path d="M12 16.5h.01"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12l8.5 8.5a1.5 1.5 0 0 1 0 2.1l-5.9 5.9a1.5 1.5 0 0 1-2.1 0z"/><path d="M8 8h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2.5"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5.5h16l-6.3 7.3V19l-3.4 1.8v-8z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5c1.8 0 3.3.5 4.6 1.2M21.5 12S18 18.5 12 18.5c-1.8 0-3.3-.5-4.6-1.2"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M4 20L20 4"/></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="9" cy="6.5" rx="6" ry="2.8"/><path d="M3 6.5v5c0 1.5 2.7 2.8 6 2.8s6-1.3 6-2.8v-5"/><path d="M3 11.5v5C3 18 5.7 19.3 9 19.3s5-1 5.6-2.1"/><path d="M15.5 10.5c3 .3 5.5 1.5 5.5 2.9v5c0 1.5-2.7 2.8-6 2.8-1.6 0-3-.3-4.1-.8"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9.5" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4.5h2.2l2.3 10.7a1.6 1.6 0 0 0 1.6 1.3h7.6a1.6 1.6 0 0 0 1.6-1.3L20.2 8H6.1"/></symbol>
+    <symbol id="i-car" viewBox="0 0 24 24"><path d="M5.2 15.5l1.3-4.6a2 2 0 0 1 1.9-1.4h7.2a2 2 0 0 1 1.9 1.4l1.3 4.6"/><path d="M4 15.5h16a1 1 0 0 1 1 1v2.5a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1h-10v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2.5a1 1 0 0 1 1-1z" transform="translate(0,-1)"/><path d="M7.5 12.5h.01M16.5 12.5h.01"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.8L12 4l8 6.8"/><path d="M6 9.5V19a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 19V9.5"/><path d="M10 20.5v-5.5h4v5.5"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7.5 5v14M16.5 5v14M3.5 12h17M3.5 8.5h4M3.5 15.5h4M16.5 8.5h4M16.5 15.5h4"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.6C1.3 8.7 3.3 5.5 6.5 5.5c2 0 3.6 1.1 4.5 2.7.9-1.6 2.5-2.7 4.5-2.7 3.2 0 5.2 3.2 3.7 5.9C17 15.6 12 20 12 20z"/></symbol>
+    <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M4 8.5h12v5.5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.8a2.4 2.4 0 0 1 0 4.8H16"/><path d="M7.8 4.5V6M11 4.5V6"/></symbol>
+    <symbol id="i-shirt" viewBox="0 0 24 24"><path d="M8.5 4.5L4.5 6.5 3 9.5l3 1.8V20h12v-8.7l3-1.8-1.5-3-4-2a3.8 3.8 0 0 1-7 0z"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="12" rx="2"/><path d="M9 8V6.5A2.5 2.5 0 0 1 11.5 4h1A2.5 2.5 0 0 1 15 6.5V8"/><path d="M3.5 13h17"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><path d="M4.5 11.5h15V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/><path d="M3.5 8h17v3.5h-17z"/><path d="M12 8v13"/><path d="M12 8s-.6-4-3.4-4a1.9 1.9 0 0 0 0 3.8"/><path d="M12 8s.6-4 3.4-4a1.9 1.9 0 0 1 0 3.8"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5V8H16"/></symbol>
+  </defs>
+</svg>
+
+<!-- ===== App shell ===== -->
+<div class="app-shell" id="app" hidden>
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="#" aria-label="Smart Finance home"><span class="brand-mark">s</span><span>smart<span class="brand-light">finance</span></span></a>
-    <div class="workspace-label">WORKSPACE</div>
-    <nav class="nav">
-      <button class="nav-item active" data-page="overview"><span class="nav-icon">▦</span> Overview</button>
-      <button class="nav-item" data-page="transactions"><span class="nav-icon">↔</span> Transactions</button>
-      <button class="nav-item" data-page="insights"><span class="nav-icon">▥</span> Insights</button>
-      <button class="nav-item" data-page="planning"><span class="nav-icon">◎</span> Planning</button>
+    <a class="brand" href="#" data-page="overview" aria-label="Smart Finance home">
+      <span class="brand-mark"><svg class="icon"><use href="#i-spark"/></svg></span>
+      <span class="brand-word">smart<em>finance</em></span>
+    </a>
+    <div class="nav-label">Menu</div>
+    <nav class="nav" aria-label="Primary">
+      <button class="nav-item active" data-page="overview"><svg class="icon"><use href="#i-grid"/></svg><span data-i18n="nav_overview">Overview</span></button>
+      <button class="nav-item" data-page="transactions"><svg class="icon"><use href="#i-swap"/></svg><span data-i18n="nav_transactions">Transactions</span></button>
+      <button class="nav-item" data-page="insights"><svg class="icon"><use href="#i-pie"/></svg><span data-i18n="nav_insights">Insights</span></button>
+      <button class="nav-item" data-page="planning"><svg class="icon"><use href="#i-target"/></svg><span data-i18n="nav_planning">Planning</span></button>
     </nav>
-    <div class="sidebar-bottom">
-      <div class="upgrade-card"><div class="upgrade-icon">✦</div><strong>Your money, in focus.</strong><p>Build better habits one month at a time.</p><button class="text-button" data-page="planning">Explore planning <span>→</span></button></div>
-      <button class="profile"><span class="avatar">AN</span><span class="profile-copy"><strong>Aisultan Nuriman</strong><small>Personal workspace</small></span><span class="dots">···</span></button>
+    <div class="profile">
+      <span class="avatar" id="avatar">&middot;</span>
+      <div class="profile-copy"><strong id="profileName">…</strong><small id="profileSub">Personal workspace</small></div>
+      <button class="icon-ghost" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"><svg class="icon"><use href="#i-moon"/></svg></button>
+      <button class="icon-ghost danger" id="logoutBtn" title="Sign out" aria-label="Sign out"><svg class="icon"><use href="#i-logout"/></svg></button>
     </div>
   </aside>
+
   <main class="main">
-    <header class="topbar">
-      <button class="mobile-menu" id="menuBtn" aria-label="Toggle menu">☰</button>
-      <div class="breadcrumb">Workspace <span>/</span> <strong id="crumb">Overview</strong></div>
-      <div class="top-actions"><span class="date-chip"><span class="live-dot"></span> October 2026</span><button class="icon-btn" title="Notifications">♧<i></i></button><span class="top-avatar">AN</span></div>
-    </header>
+    <div class="app-top">
+      <button class="avatar-btn" id="accountBtn" aria-label="Account and settings" title="Account &amp; settings"><span id="avatarTop">&middot;</span></button>
+    </div>
+
+    <!-- ===== Overview ===== -->
     <section class="page active-page" id="page-overview">
-      <div class="page-heading"><div><div class="eyebrow">YOUR FINANCIAL SNAPSHOT</div><h1>Good evening, Aisultan <span class="wave">✳</span></h1><p class="muted">Here's what's happening with your money.</p></div><button class="primary-btn" id="addBtn"><span>＋</span> Add transaction</button></div>
-      <div class="stat-grid">
-        <article class="stat-card balance-card"><div class="stat-top"><span>Total balance</span><span class="card-icon dark-icon">↗</span></div><div class="amount" id="balance">₸ 842,560<span class="decimal">.00</span></div><div class="stat-foot"><span class="trend positive">↗ 8.4%</span><span>vs. last month</span></div><div class="balance-decoration"></div></article>
-        <article class="stat-card"><div class="stat-top"><span>Total income</span><span class="card-icon income-icon">↙</span></div><div class="amount" id="income">₸ 520,000<span class="decimal">.00</span></div><div class="stat-foot"><span class="trend positive">↗ 12.8%</span><span>vs. last month</span></div><div class="mini-bars"><i style="height:25%"></i><i style="height:42%"></i><i style="height:35%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:74%"></i><i style="height:55%"></i><i style="height:91%"></i></div></article>
-        <article class="stat-card"><div class="stat-top"><span>Total expenses</span><span class="card-icon expense-icon">↗</span></div><div class="amount" id="expenses">₸ 184,320<span class="decimal">.00</span></div><div class="stat-foot"><span class="trend positive">↘ 3.2%</span><span>vs. last month</span></div><div class="mini-bars expense-bars"><i style="height:55%"></i><i style="height:38%"></i><i style="height:64%"></i><i style="height:46%"></i><i style="height:72%"></i><i style="height:50%"></i><i style="height:36%"></i><i style="height:28%"></i></div></article>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow" id="ovEyebrow" data-i18n="hdr_snapshot">Your financial snapshot</div>
+          <h1 id="greeting">Welcome <span class="wave" aria-hidden="true"></span></h1>
+          <p class="muted" id="greetingSub" data-i18n="greet_sub">Here's what's happening with your money.</p>
+        </div>
+        <div class="heading-actions">
+          <button class="btn ghost" id="scanBtn"><svg class="icon sm"><use href="#i-scan"/></svg> <span data-i18n="btn_scan_receipt">Scan receipt</span></button>
+          <button class="btn primary" data-open-tx><svg class="icon sm"><use href="#i-plus"/></svg> <span data-i18n="btn_add_tx">Add transaction</span></button>
+        </div>
       </div>
+      <div class="stat-grid" id="statGrid"></div>
+      <article class="panel scan-banner" id="scanBanner">
+        <div class="scan-banner-icon"><svg class="icon"><use href="#i-scan"/></svg></div>
+        <div class="scan-banner-copy">
+          <strong data-i18n="banner_title">Scan a receipt</strong>
+          <p data-i18n="banner_text">Merchant, date and total read from the photo. Categories you confirm are remembered.</p>
+        </div>
+        <button class="btn sm primary" data-open-scan><svg class="icon xs"><use href="#i-scan"/></svg> <span data-i18n="banner_btn">Scan</span></button>
+      </article>
       <div class="content-grid">
-        <article class="panel cashflow-panel"><div class="panel-heading"><div><h2>Cash flow</h2><p class="muted">Income vs. expenses over time</p></div><select id="chartRange" class="select-chip"><option>Last 6 months</option><option>Last 3 months</option><option>This year</option></select></div>
-          <div class="chart-legend"><span><i class="legend-dot green"></i> Income</span><span><i class="legend-dot pale"></i> Expenses</span><span class="chart-total">Net cash flow <strong>+₸ 335,680</strong></span></div>
-          <div class="chart" id="cashChart"><div class="y-labels"><span>600k</span><span>450k</span><span>300k</span><span>150k</span><span>0</span></div><div class="chart-area"><div class="grid-lines"><i></i><i></i><i></i><i></i><i></i></div><div class="bar-groups"><div class="bar-group"><div class="bars"><i class="bar inc" style="height:48%"></i><i class="bar exp" style="height:27%"></i></div><span>May</span></div><div class="bar-group"><div class="bars"><i class="bar inc" style="height:65%"></i><i class="bar exp" style="height:34%"></i></div><span>Jun</span></div><div class="bar-group"><div class="bars"><i class="bar inc" style="height:53%"></i><i class="bar exp" style="height:30%"></i></div><span>Jul</span></div><div class="bar-group"><div class="bars"><i class="bar inc" style="height:78%"></i><i class="bar exp" style="height:45%"></i></div><span>Aug</span></div><div class="bar-group"><div class="bars"><i class="bar inc" style="height:61%"></i><i class="bar exp" style="height:36%"></i></div><span>Sep</span></div><div class="bar-group"><div class="bars"><i class="bar inc" style="height:88%"></i><i class="bar exp" style="height:43%"></i></div><span>Oct</span></div></div></div></div>
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2 data-i18n="sec_cashflow">Cash flow</h2><p class="muted" data-i18n="sec_cashflow_sub">Income vs. expenses over time</p></div>
+            <div class="heading-right"><span class="chip subtle" id="cashNet">—</span>
+            <div class="seg" id="cashflowSeg" role="group" aria-label="Chart period">
+              <button class="seg-btn" data-months="3">3M</button>
+              <button class="seg-btn active" data-months="6">6M</button>
+              <button class="seg-btn" data-months="12">1Y</button>
+            </div></div>
+          </div>
+          <div id="cashChart" class="chart-mount" aria-label="Cash flow chart"></div>
         </article>
-        <article class="panel budget-panel"><div class="panel-heading"><div><h2>Monthly budget</h2><p class="muted">Keep your spending on track</p></div><button class="more-btn" data-page="planning">···</button></div><div class="budget-total"><div><span class="muted">Spent this month</span><strong>₸ 184,320</strong></div><span class="budget-percent">61%</span></div><div class="progress"><span style="width:61%"></span></div><div class="budget-foot"><span>₸ 184,320 spent</span><span>₸ 300,000 limit</span></div><div class="budget-divider"></div><div class="category-row"><span class="category-icon food">⌂</span><div class="category-copy"><strong>Food & groceries</strong><small>₸ 62,400 of ₸ 90,000</small><div class="progress thin"><span style="width:69%"></span></div></div><span class="category-pct">69%</span></div><div class="category-row"><span class="category-icon transport">↗</span><div class="category-copy"><strong>Transport</strong><small>₸ 18,600 of ₸ 35,000</small><div class="progress thin"><span style="width:53%"></span></div></div><span class="category-pct">53%</span></div><div class="category-row"><span class="category-icon lifestyle">✧</span><div class="category-copy"><strong>Lifestyle</strong><small>₸ 41,200 of ₸ 50,000</small><div class="progress thin orange"><span style="width:82%"></span></div></div><span class="category-pct warning">82%</span></div><button class="full-link" data-page="planning">View all budgets <span>→</span></button></article>
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2 data-i18n="sec_budget">Monthly budget</h2><p class="muted" data-i18n="sec_budget_sub">Keep your spending on track</p></div>
+            <button class="icon-ghost" data-page="planning" aria-label="Open planning"><svg class="icon sm"><use href="#i-chev-right"/></svg></button>
+          </div>
+          <div id="budgetSnapshot"></div>
+        </article>
       </div>
       <div class="bottom-grid">
-        <article class="panel transactions-panel"><div class="panel-heading"><div><h2>Recent transactions</h2><p class="muted">Your latest financial activity</p></div><button class="link-btn" data-page="transactions">View all <span>→</span></button></div><div class="table-wrap"><table><thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th>AMOUNT</th></tr></thead><tbody id="recentRows"></tbody></table></div></article>
-        <article class="panel goals-panel"><div class="panel-heading"><div><h2>Savings goals</h2><p class="muted">Small steps, big plans</p></div><button class="more-btn" data-page="planning">···</button></div><div class="goal-item"><div class="goal-top"><span class="goal-symbol laptop">▣</span><div class="goal-title"><strong>New laptop</strong><small>Target: ₸ 450,000</small></div><b>64%</b></div><div class="progress"><span style="width:64%"></span></div><div class="goal-foot"><span>₸ 288,000 saved</span><span>₸ 162,000 to go</span></div></div><div class="goal-item"><div class="goal-top"><span class="goal-symbol trip">✈</span><div class="goal-title"><strong>Summer trip</strong><small>Target: ₸ 300,000</small></div><b>38%</b></div><div class="progress purple"><span style="width:38%"></span></div><div class="goal-foot"><span>₸ 114,000 saved</span><span>₸ 186,000 to go</span></div></div><button class="full-link" data-page="planning">Manage savings goals <span>→</span></button></article>
+        <article class="panel table-panel">
+          <div class="panel-heading">
+            <div><h2 data-i18n="sec_recent">Recent transactions</h2><p class="muted" data-i18n="sec_recent_sub">Your latest financial activity</p></div>
+            <button class="link-btn" data-page="transactions"><span data-i18n="view_all">View all</span> <svg class="icon xs"><use href="#i-chev-right"/></svg></button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th data-i18n="th_tx">Transaction</th><th data-i18n="th_category">Category</th><th data-i18n="th_date">Date</th><th class="num" data-i18n="th_amount">Amount</th></tr></thead>
+              <tbody id="recentRows"></tbody>
+            </table>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2 data-i18n="sec_goals">Savings goals</h2><p class="muted" data-i18n="sec_goals_sub">Small steps, big plans</p></div>
+            <button class="icon-ghost" data-page="planning" aria-label="Open planning"><svg class="icon sm"><use href="#i-chev-right"/></svg></button>
+          </div>
+          <div id="overviewGoals"></div>
+        </article>
       </div>
     </section>
+
+    <!-- ===== Transactions ===== -->
     <section class="page" id="page-transactions">
-      <div class="page-heading"><div><div class="eyebrow">YOUR MONEY MOVEMENT</div><h1>Transactions</h1><p class="muted">All your income and expenses, in one place.</p></div><button class="primary-btn" id="addBtn2"><span>＋</span> Add transaction</button></div>
-      <div class="stat-grid compact-stats"><article class="stat-card"><div class="stat-top"><span>Income this month</span><span class="card-icon income-icon">↙</span></div><div class="amount">₸ 520,000</div><div class="stat-foot"><span class="trend positive">↗ 12.8%</span><span>compared to September</span></div></article><article class="stat-card"><div class="stat-top"><span>Expenses this month</span><span class="card-icon expense-icon">↗</span></div><div class="amount">₸ 184,320</div><div class="stat-foot"><span class="trend positive">↘ 3.2%</span><span>compared to September</span></div></article><article class="stat-card"><div class="stat-top"><span>Transactions</span><span class="card-icon">⇄</span></div><div class="amount" id="txCount">8</div><div class="stat-foot"><span>Across 5 categories</span></div></article></div>
-      <article class="receipt-card" aria-labelledby="receiptTitle"><h2 id="receiptTitle">✦ Scan a receipt</h2><p class="muted">Upload a clear JPEG, PNG or WebP photo (up to 5 MB). Review the recognized details before saving an expense.</p><div class="receipt-controls"><input id="receiptFile" type="file" accept="image/jpeg,image/png,image/webp"><button class="primary-btn" id="scanReceiptBtn" type="button">Recognize receipt</button></div><label class="receipt-consent"><input id="receiptConsent" type="checkbox"><span>I agree to send this receipt photo to the configured recognition provider for processing. Use a redacted or sample receipt for demos; don't upload sensitive personal details.</span></label><div id="receiptStatus" class="receipt-status" role="status" aria-live="polite"></div><form id="receiptForm" class="receipt-result" hidden><div class="receipt-fields"><label>Store / merchant<input id="receiptMerchant" maxlength="200" placeholder="Store name"></label><label>Date<input id="receiptDate" type="date"></label><label>Total on receipt<input id="receiptTotal" type="number" min="0.01" step="0.01" placeholder="0.00" required></label><label>Currency on receipt<select id="receiptCurrency"><option value="KZT">KZT — Kazakhstani tenge</option><option value="RUB">RUB — Russian ruble</option><option value="USD">USD — US dollar</option><option value="EUR">EUR — euro</option></select></label><label>Expense category<select id="receiptCategory"><option>Food & groceries</option><option>Transport</option><option>Lifestyle</option><option>Bills & utilities</option><option>Education</option><option>Other</option></select></label><label>KZT amount to save<input id="receiptKzt" type="number" min="1" step="1" placeholder="Enter amount in KZT" required></label></div><p class="muted" id="receiptCurrencyNote" style="margin-top:10px">Check every field. The transaction ledger is recorded in KZT.</p><div class="modal-actions"><button class="secondary-btn" type="button" id="receiptRetryBtn">Choose another photo</button><button class="primary-btn" type="submit" id="saveReceiptBtn">Confirm and save expense</button></div></form></article>
-      <article class="panel full-panel"><div class="filters"><div><h2>All transactions</h2><p class="muted">Review and manage your activity</p></div><div class="filter-controls"><label class="search-box">⌕ <input id="searchInput" placeholder="Search transactions..." /></label><select id="typeFilter" class="select-chip"><option value="all">All types</option><option value="income">Income</option><option value="expense">Expenses</option></select></div></div><div class="table-wrap"><table><thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th>TYPE</th><th>AMOUNT</th></tr></thead><tbody id="allRows"></tbody></table></div><div class="table-footer"><span id="showingCount">Showing 8 transactions</span><span>Amounts in KZT (₸)</span></div></article>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow" data-i18n="hdr_money">Your money movement</div>
+          <h1 data-i18n="page_tx">Transactions</h1>
+          <p class="muted" data-i18n="page_tx_sub">All your income and expenses, in one place.</p>
+        </div>
+        <div class="heading-actions">
+          <button class="btn ghost" id="importBtn"><svg class="icon sm"><use href="#i-upload"/></svg> <span data-i18n="import_csv">Import CSV</span></button>
+          <button class="btn ghost" id="exportBtn"><svg class="icon sm"><use href="#i-download"/></svg> <span data-i18n="export_csv">Export</span></button>
+          <button class="btn ghost" id="scanBtn2"><svg class="icon sm"><use href="#i-scan"/></svg> <span data-i18n="btn_scan_receipt">Scan receipt</span></button>
+          <button class="btn primary" data-open-tx><svg class="icon sm"><use href="#i-plus"/></svg> <span data-i18n="btn_add_tx">Add transaction</span></button>
+        </div>
+      </div>
+      <div class="stat-grid compact" id="txStats"></div>
+      <article class="panel">
+        <div class="filters">
+          <div><h2 data-i18n="all_tx">All transactions</h2><p class="muted" data-i18n="all_tx_sub">Review and manage your activity</p></div>
+          <div class="filter-controls">
+            <label class="search-box"><svg class="icon sm"><use href="#i-search"/></svg><input id="searchInput" data-i18n-ph="search_ph" placeholder="Search description, category…" aria-label="Search transactions"></label>
+            <select id="typeFilter" class="select" aria-label="Filter by type">
+              <option value="all" data-i18n="all_types">All types</option><option value="income" data-i18n="opt_income">Income</option><option value="expense" data-i18n="opt_expense">Expenses</option>
+            </select>
+            <select id="categoryFilter" class="select" aria-label="Filter by category"><option value="all">All categories</option></select>
+            <select id="monthFilter" class="select" aria-label="Filter by month"><option value="all">All months</option></select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th data-i18n="th_tx">Transaction</th><th data-i18n="th_category">Category</th><th data-i18n="th_date">Date</th><th data-i18n="th_type">Type</th><th class="num" data-i18n="th_amount">Amount</th><th class="num actions-col"><span class="visually-hidden" data-i18n="th_actions">Actions</span></th></tr></thead>
+            <tbody id="allRows"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span id="showingCount">—</span>
+          <div class="pager" id="pager"></div>
+          <span class="muted">Amounts in KZT (₸)</span>
+        </div>
+      </article>
     </section>
-    <section class="page" id="page-insights"><div class="card api-section"><h2>Spending categories</h2><div id="insightsContent">Loading insights…</div></div>
-      <div class="page-heading"><div><div class="eyebrow">UNDERSTAND YOUR HABITS</div><h1>Spending insights</h1><p class="muted">A clearer picture of where your money goes.</p></div><span class="date-chip">October 2026</span></div>
-      <div class="stat-grid"><article class="stat-card"><div class="stat-top"><span>Average daily spend</span><span class="card-icon">◷</span></div><div class="amount">₸ 5,946</div><div class="stat-foot"><span>Based on 31 days</span></div></article><article class="stat-card"><div class="stat-top"><span>Top category</span><span class="card-icon expense-icon">⌂</span></div><div class="amount">Food</div><div class="stat-foot"><span>34% of total expenses</span></div></article><article class="stat-card"><div class="stat-top"><span>Potential savings</span><span class="card-icon income-icon">✦</span></div><div class="amount">₸ 26,500</div><div class="stat-foot"><span class="trend positive">With small changes</span></div></article></div>
-      <div class="content-grid insights-grid"><article class="panel"><div class="panel-heading"><div><h2>Expenses by category</h2><p class="muted">October spending breakdown</p></div><span class="muted">₸ 184,320 total</span></div><div class="category-chart"><div class="donut"><div><strong>₸184k</strong><small>Total spent</small></div></div><div class="legend-list"><div><i class="legend-dot green"></i><span>Food & groceries</span><strong>₸ 62,400</strong></div><div><i class="legend-dot blue"></i><span>Lifestyle</span><strong>₸ 41,200</strong></div><div><i class="legend-dot purple-dot"></i><span>Transport</span><strong>₸ 18,600</strong></div><div><i class="legend-dot orange-dot"></i><span>Bills & utilities</span><strong>₸ 32,120</strong></div><div><i class="legend-dot grey-dot"></i><span>Other</span><strong>₸ 30,000</strong></div></div></div></article><article class="panel"><div class="panel-heading"><div><h2>Smart observations</h2><p class="muted">Ideas based on your demo activity</p></div><span class="sparkle">✦</span></div><div class="insight-tip"><span class="tip-icon">↘</span><div><strong>Transport is looking good</strong><p>Your transport spending is 18% lower than last month. Keep it up.</p></div></div><div class="insight-tip"><span class="tip-icon gold">◎</span><div><strong>Watch lifestyle spending</strong><p>You've used 82% of your lifestyle budget with time left in the month.</p></div></div><div class="insight-tip"><span class="tip-icon purple-tip">✦</span><div><strong>Build a small buffer</strong><p>Setting aside ₸ 10,000 each week could help you reach your goals sooner.</p></div></div><p class="disclaimer">Demo insights are illustrative and are not financial advice.</p></article></div>
+
+    <!-- ===== Insights ===== -->
+    <section class="page" id="page-insights">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow" data-i18n="hdr_insights">Understand your habits</div>
+          <h1 data-i18n="page_ins">Spending insights</h1>
+          <p class="muted" data-i18n="page_ins_sub">A clearer picture of where your money goes.</p>
+        </div>
+        <span class="chip" id="insightChip"><svg class="icon sm"><use href="#i-calendar"/></svg><span>—</span></span>
+      </div>
+      <div class="stat-grid" id="insightStats"></div>
+      <div class="content-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2 data-i18n="by_category">Expenses by category</h2><p class="muted" id="catTotalSub">All recorded expenses</p></div>
+          </div>
+          <div id="catChart" class="chart-mount"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2 data-i18n="smart_obs">Smart observations</h2><p class="muted" data-i18n="smart_obs_sub">Generated from your own records</p></div>
+            <span class="panel-badge"><svg class="icon xs"><use href="#i-spark"/></svg></span>
+          </div>
+          <div id="observations"></div>
+        </article>
+      </div>
+      <article class="panel full-panel">
+        <div class="panel-heading">
+          <div><h2 data-i18n="monthly_trend">Monthly trend</h2><p class="muted" data-i18n="trend_sub">Total expenses per month, last 12 months</p></div>
+        </div>
+        <div id="trendChart" class="chart-mount wide"></div>
+      </article>
     </section>
-    <section class="page" id="page-planning"><div class="card api-section"><div class="section-heading"><h2>Monthly budgets</h2><button id="editBudgetBtn" class="secondary-btn">＋ Add budget</button></div><div id="budgetsContent">Loading budgets…</div></div><div class="card api-section"><div class="section-heading"><h2>Savings goals</h2><button id="goalBtn" class="secondary-btn">＋ Add goal</button></div><div id="goalsContent">Loading goals…</div></div>
-      <div class="page-heading"><div><div class="eyebrow">MAKE YOUR MONEY GO FURTHER</div><h1>Planning</h1><p class="muted">Set realistic limits and make progress toward what matters.</p></div><button class="primary-btn" id="goalBtn">＋ New savings goal</button></div>
-      <div class="planning-summary"><div><span class="muted">Monthly budget</span><strong>₸ 300,000</strong><small>₸ 115,680 remaining</small></div><div class="summary-progress"><div class="progress"><span style="width:61%"></span></div><span>61% used</span></div><div><span class="muted">Savings progress</span><strong>₸ 402,000</strong><small>Across 2 active goals</small></div></div>
-      <article class="panel full-panel"><div class="panel-heading"><div><h2>Budget categories</h2><p class="muted">Track your monthly limits</p></div><button class="secondary-btn" id="editBudgetBtn">Edit budget</button></div><div class="planning-categories"><div class="plan-row"><span class="category-icon food">⌂</span><div class="plan-copy"><strong>Food & groceries</strong><small>₸ 62,400 spent of ₸ 90,000</small><div class="progress"><span style="width:69%"></span></div></div><strong>69%</strong></div><div class="plan-row"><span class="category-icon transport">↗</span><div class="plan-copy"><strong>Transport</strong><small>₸ 18,600 spent of ₸ 35,000</small><div class="progress"><span style="width:53%"></span></div></div><strong>53%</strong></div><div class="plan-row"><span class="category-icon lifestyle">✧</span><div class="plan-copy"><strong>Lifestyle</strong><small>₸ 41,200 spent of ₸ 50,000</small><div class="progress orange"><span style="width:82%"></span></div></div><strong class="warning">82%</strong></div><div class="plan-row"><span class="category-icon bills">⌁</span><div class="plan-copy"><strong>Bills & utilities</strong><small>₸ 32,120 spent of ₸ 65,000</small><div class="progress"><span style="width:49%"></span></div></div><strong>49%</strong></div></div></article>
-      <article class="panel full-panel planning-goals"><div class="panel-heading"><div><h2>Savings goals</h2><p class="muted">Your progress, at a glance</p></div></div><div class="goals-grid"><div class="goal-card"><span class="goal-symbol laptop">▣</span><h3>New laptop</h3><p class="muted">A little upgrade for your workflow.</p><div class="goal-big">₸ 288,000 <small>/ ₸ 450,000</small></div><div class="progress"><span style="width:64%"></span></div><div class="goal-foot"><span>64% complete</span><span>₸ 162,000 left</span></div></div><div class="goal-card"><span class="goal-symbol trip">✈</span><h3>Summer trip</h3><p class="muted">Save now, explore later.</p><div class="goal-big">₸ 114,000 <small>/ ₸ 300,000</small></div><div class="progress purple"><span style="width:38%"></span></div><div class="goal-foot"><span>38% complete</span><span>₸ 186,000 left</span></div></div></div></article>
+
+    <!-- ===== Planning ===== -->
+    <section class="page" id="page-planning">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow" data-i18n="hdr_planning">Make your money go further</div>
+          <h1 data-i18n="page_pl">Planning</h1>
+          <p class="muted" data-i18n="page_pl_sub">Set realistic limits and make progress toward what matters.</p>
+        </div>
+        <div class="heading-actions">
+          <button class="btn ghost" id="addBudgetBtn"><svg class="icon sm"><use href="#i-plus"/></svg> <span data-i18n="new_budget">Budget</span></button>
+          <button class="btn primary" id="addGoalBtn"><svg class="icon sm"><use href="#i-plus"/></svg> <span data-i18n="new_goal_btn">New savings goal</span></button>
+        </div>
+      </div>
+      <div class="planning-summary" id="planningSummary"></div>
+      <article class="panel full-panel">
+        <div class="panel-heading">
+          <div><h2 data-i18n="budget_cats">Budget categories</h2><p class="muted" data-i18n="budget_cats_sub">Track your monthly limits</p></div>
+          <div class="month-nav">
+            <button class="icon-ghost" id="monthPrev" aria-label="Previous month"><svg class="icon sm"><use href="#i-chev-left"/></svg></button>
+            <span class="month-label" id="planningMonth">—</span>
+            <button class="icon-ghost" id="monthNext" aria-label="Next month"><svg class="icon sm"><use href="#i-chev-right"/></svg></button>
+          </div>
+        </div>
+        <div id="budgetsList" class="planning-categories"></div>
+      </article>
+      <article class="panel full-panel">
+        <div class="panel-heading">
+          <div><h2 data-i18n="goals_title">Savings goals</h2><p class="muted" data-i18n="goals_sub">Your progress, at a glance</p></div>
+        </div>
+        <div id="goalsGrid" class="goals-grid"></div>
+      </article>
     </section>
-    <footer class="footer"><span>© 2026 Smart Finance</span><span>Designed for clarity <span class="footer-heart">♥</span> &nbsp;·&nbsp; Demo interface</span></footer>
+
+    <footer class="footer">
+      <span>© 2026 Smart Finance</span>
+      <span data-i18n="footer_note">Personal finance in KZT · Local workspace</span>
+    </footer>
   </main>
+
+  <nav class="tabbar" aria-label="Primary tabs">
+    <button class="tab-item active" data-page="overview"><svg class="icon"><use href="#i-grid"/></svg><span data-i18n="tab_home">Home</span></button>
+    <button class="tab-item" data-page="transactions"><svg class="icon"><use href="#i-swap"/></svg><span data-i18n="tab_history">History</span></button>
+    <button class="tab-fab" data-open-tx aria-label="Add transaction"><svg class="icon"><use href="#i-plus"/></svg></button>
+    <button class="tab-item" data-page="insights"><svg class="icon"><use href="#i-pie"/></svg><span data-i18n="tab_stats">Stats</span></button>
+    <button class="tab-item" data-page="planning"><svg class="icon"><use href="#i-target"/></svg><span data-i18n="tab_plans">Plans</span></button>
+  </nav>
+  <div class="ptr" id="ptr" aria-hidden="true"><svg class="icon"><use href="#i-refresh"/></svg></div>
 </div>
-<div class="modal-backdrop" id="modal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><div><div class="eyebrow">QUICK ENTRY</div><h2 id="modalTitle">Add transaction</h2></div><button class="close-btn" id="closeModal" aria-label="Close">×</button></div><form id="transactionForm"><div class="type-toggle"><button type="button" class="type-option selected" data-kind="expense">− Expense</button><button type="button" class="type-option" data-kind="income">＋ Income</button></div><input type="hidden" id="txKind" value="expense"><label class="field-label">Amount (KZT)<div class="amount-input"><span>₸</span><input id="txAmount" type="number" min="1" step="1" placeholder="0" required></div></label><div class="form-row"><label class="field-label">Category<select id="txCategory"><option>Food & groceries</option><option>Transport</option><option>Lifestyle</option><option>Bills & utilities</option><option>Salary</option><option>Education</option><option>Other</option></select></label><label class="field-label">Date<input id="txDate" type="date" required></label></div><label class="field-label">Description<input id="txDescription" type="text" placeholder="e.g. Weekly groceries" required maxlength="80"></label><div class="modal-actions"><button type="button" class="secondary-btn" id="cancelModal">Cancel</button><button class="primary-btn" type="submit">Save transaction</button></div><p class="demo-note">This preview stores changes only in this open page. It does not connect to your account or database.</p></form></div></div>
-<div class="toast" id="toast">Transaction added</div>
-<script src="app.js"></script>
-</body></html>
+
+<!-- ===== Auth ===== -->
+<div class="auth-screen" id="authScreen" hidden>
+  <div class="auth-hero">
+    <div class="auth-hero-inner">
+      <a class="brand light"><span class="brand-mark"><svg class="icon"><use href="#i-spark"/></svg></span><span class="brand-word">smart<em>finance</em></span></a>
+      <h2>Money clarity,<br>beautifully simple.</h2>
+      <p>Record income and expenses in KZT, scan receipts, follow your budgets and reach savings goals — all in one calm workspace.</p>
+      <ul class="hero-points">
+        <li><svg class="icon sm"><use href="#i-receipt"/></svg><div><strong>Receipt scanning</strong><span>Snap a receipt, review, save. Merchant categories are remembered.</span></div></li>
+        <li><svg class="icon sm"><use href="#i-pie"/></svg><div><strong>Spending insights</strong><span>Category breakdowns and a transparent expense forecast.</span></div></li>
+        <li><svg class="icon sm"><use href="#i-target"/></svg><div><strong>Budgets &amp; goals</strong><span>Monthly limits per category and savings goals that track themselves.</span></div></li>
+      </ul>
+      <div class="hero-foot">Amounts are recorded in Kazakhstani tenge (₸).</div>
+    </div>
+  </div>
+  <div class="auth-side">
+    <form class="auth-card" id="authForm" novalidate>
+      <span class="brand-mark small"><svg class="icon"><use href="#i-spark"/></svg></span>
+      <h1 id="authTitle" data-i18n="auth_welcome">Welcome back</h1>
+      <p class="muted" id="authSubtitle" data-i18n="auth_sub">Sign in to your personal finance workspace.</p>
+      <label class="field-label"><span data-i18n="username">Username</span>
+        <div class="input-wrap"><svg class="icon sm"><use href="#i-user"/></svg><input id="authUser" minlength="3" maxlength="40" autocomplete="username" required placeholder="e.g. daryn"></div>
+      </label>
+      <label class="field-label"><span data-i18n="password">Password</span>
+        <div class="input-wrap password">
+          <svg class="icon sm"><use href="#i-wallet"/></svg>
+          <input id="authPass" type="password" minlength="10" maxlength="128" autocomplete="current-password" required placeholder="10–128 characters">
+          <button type="button" class="icon-ghost" id="passToggle" aria-label="Show password"><svg class="icon sm"><use href="#i-eye"/></svg></button>
+        </div>
+      </label>
+      <label class="check-row"><input type="checkbox" id="registerMode"><span>Create a new account</span></label>
+      <button class="btn primary full" type="submit" id="authSubmit"><span data-i18n="signin">Sign in</span></button>
+      <div class="form-alert" id="authError" role="alert" hidden></div>
+      <small class="auth-foot">Your data stays in the local Smart Finance backend. Passwords are stored salted &amp; hashed.</small>
+    </form>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+<div class="modal-root" id="modalRoot"></div>
+<div class="modal-root" id="qrRoot"></div>
+<script src="app.js?v=7"></script>
+</body>
+</html>

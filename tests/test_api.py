@@ -149,6 +149,42 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.post('/goals/update', {'id': goal['id'], 'saved_minor': 10000})[1]['saved_minor'], 10000)
         self.assertEqual(self.post('/goals/update', {'id': goal['id'], 'saved_minor': 10001})[0], 400)
 
+    def test_delete_endpoints_are_scoped_to_owner(self):
+        _, saved = self.post('/transactions', {'kind': 'expense', 'amount_minor': 100, 'category': 'Food'})
+        _, budget = self.post('/budgets', {'month': '2025-01', 'category': 'Food', 'amount_minor': 5000})
+        _, goal = self.post('/goals', {'name': 'Trip', 'target_minor': 10000})
+        self.assertEqual(self.post('/transactions/delete', {'id': saved['id']})[0], 200)
+        self.assertEqual(self.post('/budgets/delete', {'id': budget['id']})[0], 200)
+        self.assertEqual(self.post('/goals/delete', {'id': goal['id']})[0], 200)
+        self.assertEqual(self.post('/transactions/delete', {'id': saved['id']})[0], 400)
+        self.assertEqual(self.post('/budgets/delete', {'id': budget['id']})[0], 400)
+        self.assertEqual(self.post('/goals/delete', {'id': goal['id']})[0], 400)
+        _, session = self.post('/auth/register', {'username': 'second', 'password': 'SecondPassword2026!'})
+        self.authorization = 'Bearer ' + session['token']
+        _, other_goal = self.post('/goals', {'name': 'Other', 'target_minor': 10000})
+        self.assertEqual(self.post('/goals/delete', {'id': other_goal['id']})[0], 200)
+        self.assertEqual(self.post('/goals/delete', {'id': goal['id']})[0], 400)
+
+    def test_summary_includes_month_and_count(self):
+        from datetime import datetime, timezone
+        month = datetime.now(timezone.utc).strftime('%Y-%m')
+        self.post('/transactions', {'kind': 'income', 'amount_minor': 250000, 'category': 'Salary'})
+        self.post('/transactions', {'kind': 'expense', 'amount_minor': 90000, 'category': 'Food'})
+        _, body, _ = self.request('GET', '/summary')
+        data = json.loads(body)
+        self.assertEqual(data['month'], month)
+        self.assertEqual(data['month_income_minor'], 250000)
+        self.assertEqual(data['month_expense_minor'], 90000)
+        self.assertEqual(data['transaction_count'], 2)
+
+    def test_analytics_months_include_income(self):
+        self.post('/transactions', {'kind': 'income', 'amount_minor': 250000, 'category': 'Salary'})
+        self.post('/transactions', {'kind': 'expense', 'amount_minor': 90000, 'category': 'Food'})
+        _, body, _ = self.request('GET', '/analytics')
+        months = json.loads(body)['months']
+        self.assertEqual(months[-1]['income_minor'], 250000)
+        self.assertEqual(months[-1]['expense_minor'], 90000)
+
     def test_csv_import_is_atomic_and_repeatable_without_duplicates(self):
         content = 'date,kind,amount,category,description\n2025-01-01,expense,10.01,Food,Example'
         self.assertEqual(self.post('/transactions/import', {'csv': content})[1]['imported'], 1)
