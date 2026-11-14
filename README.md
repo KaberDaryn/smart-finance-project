@@ -4,7 +4,9 @@ Smart Finance is a team diploma project for personal finance planning and expens
 
 ## Application
 
-Users can create an account, record dated income and expenses, search their history, and view their balance. CSV import checks the complete input before saving records and recognises repeated imports of the same data. Each account has separate transactions, monthly budgets, and savings goals.
+Users can create an account, record dated income and expenses, search their history, delete records, and view their balance. CSV import checks the complete input before saving records and recognises repeated imports of the same data, and CSV export downloads the recorded history. Each account has separate transactions, monthly budgets, and savings goals.
+
+The browser client in `web/` is a hand-written dashboard with no build step: sign-in and registration, Overview, Transactions, Insights, and Planning pages, receipt scanning, CSV import and export, light and dark themes, and SVG charts.
 
 The Insights screen displays expense categories and monthly totals. Planning shows budget usage, overspending alerts, and savings progress. The analytics package provides expense category suggestions and a forecast based on three complete months. Suggestions can be edited before saving. The demonstration model uses synthetic English descriptions; its scores are not evidence of real-world accuracy.
 
@@ -31,7 +33,7 @@ The local browser application runs with Python 3.11 or newer. START_LOCAL.cmd st
 
 ## Receipt scanning
 
-Sign in and open **Add transaction → Scan receipt**. Accept the external-service notice, take a photo or choose one from the gallery, review the recognized fields, choose a category, and press **Save transaction**. Categories come only from the current user's saved merchant choices. Manual entry works without a recognition key.
+Sign in and choose **Scan receipt** on the Overview or Transactions page. Accept the external-service notice, choose a JPEG/PNG/WebP photo, review the recognized fields, choose a category, and press **Save transaction**. Categories come only from the current user's saved merchant choices. Manual entry works without a recognition key.
 
 Create a free Gemini API key in the [Google key console](https://aistudio.google.com/apikey). Check the [current pricing and quotas](https://ai.google.dev/gemini-api/docs/pricing) and keep the project on the free tier if you do not want paid usage. The default `gemini-3.8-flash` supports image input and free-tier input/output, checked on 2026-10-23. Limits and availability can change.
 
@@ -48,19 +50,18 @@ python -m backend.server
 
 In PowerShell use `$env:GEMINI_API_KEY = 'your-local-key'` instead of `export`. Never put the key in Dart defines, source, screenshots, or commits.
 
-For client development or rebuilding the supplied browser application:
+The browser frontend lives in `web/`: `index.html`, `styles.css`, `app.js`, and `favicon.png`. These are plain hand-written files with no build step and no framework; edit them directly and refresh the browser at http://127.0.0.1:8000. The served UI no longer comes from `flutter build web`; the previously supplied compiled Flutter web build was removed from `web/`.
+
+For mobile client development:
 
 ```sh
 cd mobile
 flutter pub get
 flutter analyze
 flutter test
-flutter build web --no-web-resources-cdn
-cd ..
-cp -R mobile/build/web/. web/
 ```
 
-On Windows, use `scripts/build_web.ps1` for the build and copy step. Flutter 3.44.2 is the version used by this project.
+The Flutter client in `mobile/` remains the mobile (Android) client and is unchanged. Flutter 3.44.2 is the version used by this project.
 
 The client corrects orientation, scales the long side to at most 1500 px, removes image metadata, and uploads JPEG at quality 82. JPEG, PNG, and WebP input is supported; export HEIC as JPEG first. The ledger stays in KZT. Foreign receipts require a manually entered KZT equivalent; the original amount and currency are retained in the description. No currency conversion service is used.
 
