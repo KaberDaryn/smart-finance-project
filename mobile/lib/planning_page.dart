@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api.dart';
+import 'design_system.dart';
 import 'formatters.dart';
 
 class PlanningPage extends StatefulWidget {
@@ -82,31 +83,102 @@ class _PlanningPageState extends State<PlanningPage> {
       );
     }
     final month = dateText(DateTime.now().toUtc()).substring(0, 7);
+    final limit = budgets.fold<int>(
+      0,
+      (sum, budget) => sum + (budget['amount_minor'] as int? ?? 0),
+    );
+    final spent = budgets.fold<int>(
+      0,
+      (sum, budget) => sum + (budget['spent_minor'] as int? ?? 0),
+    );
+    final saved = goals.fold<int>(
+      0,
+      (sum, goal) => sum + (goal['saved_minor'] as int? ?? 0),
+    );
+    final percent = limit == 0 ? 0.0 : (spent / limit).clamp(0, 1).toDouble();
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [
-        const Text(
-          'MAKE YOUR MONEY GO FURTHER',
-          style: TextStyle(
-            color: Color(0xFF87928C),
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.4,
+        const SFPageHeader(
+          eyebrow: 'MAKE YOUR MONEY GO FURTHER',
+          title: 'Planning',
+          subtitle: 'Build better habits one month at a time.',
+        ),
+        const SizedBox(height: 16),
+        SFPanel(
+          gradient: SFColors.gradHero,
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Budget used · $month',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.65),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    sfMoney(spent),
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.4,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    limit == 0 ? '' : '${(spent * 100 / limit).round()}%',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF9FE8C0),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 9),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 6,
+                      color: Colors.white.withValues(alpha: 0.16),
+                    ),
+                    FractionallySizedBox(
+                      widthFactor: percent,
+                      child: Container(
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF58C493), Color(0xFF9FE8C0)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                '${goals.isEmpty ? 'No savings goals yet' : '${sfMoney(saved)} saved toward goals'}'
+                '${limit == 0 ? '' : ' · ${sfMoney(limit)} limit'}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.65),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Planning',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Build better habits one month at a time.',
-          style: TextStyle(color: Color(0xFF87928C)),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -157,6 +229,11 @@ class _PlanningPageState extends State<PlanningPage> {
                       children: [
                         Row(
                           children: [
+                            SFCategoryIcon(
+                              category: budget['category'] as String?,
+                              size: 34,
+                            ),
+                            const SizedBox(width: 11),
                             Expanded(
                               child: Text(
                                 budget['category'] == '*'
@@ -170,27 +247,19 @@ class _PlanningPageState extends State<PlanningPage> {
                             Text(
                               '${money(budget['spent_minor'] as int)} / ${money(budget['amount_minor'] as int)}',
                               style: const TextStyle(
-                                color: Color(0xFF647269),
+                                color: SFColors.muted,
                                 fontSize: 12,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 9),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: LinearProgressIndicator(
-                            value:
-                                ((budget['spent_minor'] as int) /
-                                        (budget['amount_minor'] as int))
-                                    .clamp(0, 1)
-                                    .toDouble(),
-                            minHeight: 8,
-                            backgroundColor: const Color(0xFFE9F0EA),
-                            color: budget['over_budget'] == true
-                                ? const Color(0xFFC96A56)
-                                : const Color(0xFF3D8060),
-                          ),
+                        SFProgressBar(
+                          value:
+                              ((budget['spent_minor'] as int) /
+                                      (budget['amount_minor'] as int))
+                                  .clamp(0, 1)
+                                  .toDouble(),
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -199,8 +268,8 @@ class _PlanningPageState extends State<PlanningPage> {
                               : '${money(budget['remaining_minor'] as int)} remaining',
                           style: TextStyle(
                             color: budget['over_budget'] == true
-                                ? const Color(0xFFB54737)
-                                : const Color(0xFF87928C),
+                                ? SFColors.danger
+                                : SFColors.muted,
                             fontSize: 12,
                           ),
                         ),
@@ -263,52 +332,56 @@ class _PlanningPageState extends State<PlanningPage> {
                 for (final goal in goals)
                   Padding(
                     padding: const EdgeInsets.only(top: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
+                        SFRing(
+                          value:
+                              ((goal['saved_minor'] as int) /
+                                      (goal['target_minor'] as int))
+                                  .clamp(0, 1)
+                                  .toDouble(),
+                          size: 44,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
                                 goal['name'] as String,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-                            Text(
-                              '${money(goal['saved_minor'] as int)} / ${money(goal['target_minor'] as int)}',
-                              style: const TextStyle(
-                                color: Color(0xFF647269),
-                                fontSize: 12,
+                              const SizedBox(height: 3),
+                              Text(
+                                '${money(goal['saved_minor'] as int)} / ${money(goal['target_minor'] as int)}',
+                                style: const TextStyle(
+                                  color: SFColors.muted,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 9),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: LinearProgressIndicator(
-                            value:
-                                ((goal['saved_minor'] as int) /
-                                        (goal['target_minor'] as int))
-                                    .clamp(0, 1)
-                                    .toDouble(),
-                            minHeight: 8,
-                            backgroundColor: const Color(0xFFE9F0EA),
-                            color: const Color(0xFF3D8060),
-                            semanticsLabel: '${goal['name']} progress',
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () => update(goal),
-                            child: Text(
-                              goal['saved_minor'] == goal['target_minor']
-                                  ? 'Goal reached · update amount'
-                                  : 'Update progress',
-                            ),
+                              const SizedBox(height: 9),
+                              SFProgressBar(
+                                value:
+                                    ((goal['saved_minor'] as int) /
+                                            (goal['target_minor'] as int))
+                                        .clamp(0, 1)
+                                        .toDouble(),
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () => update(goal),
+                                  child: Text(
+                                    goal['saved_minor'] == goal['target_minor']
+                                        ? 'Goal reached · update amount'
+                                        : 'Update progress',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

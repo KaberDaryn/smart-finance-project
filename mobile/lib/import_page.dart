@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api.dart';
+import 'design_system.dart';
 
 class ImportPage extends StatefulWidget {
   const ImportPage({super.key, required this.api});
@@ -61,26 +62,10 @@ class _ImportPageState extends State<ImportPage> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
           children: [
-            const Text(
-              'YOUR MONEY MOVEMENT',
-              style: TextStyle(
-                color: Color(0xFF87928C),
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.4,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Import transactions',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Bring your transactions into one place.',
-              style: TextStyle(color: Color(0xFF87928C)),
+            const SFPageHeader(
+              eyebrow: 'YOUR MONEY MOVEMENT',
+              title: 'Import transactions',
+              subtitle: 'Bring your transactions into one place.',
             ),
             const SizedBox(height: 20),
             Card(
@@ -93,8 +78,21 @@ class _ImportPageState extends State<ImportPage> {
                       'Paste CSV data from a text file or spreadsheet. Amounts are in KZT. All rows are checked before anything is saved.',
                     ),
                     const SizedBox(height: 16),
-                    const SelectableText(
-                      'date,kind,amount,category,description\n2025-01-15,expense,1500.00,Groceries,Food shopping',
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: SFColors.surfaceAlt,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: SFColors.line),
+                      ),
+                      child: const SelectableText(
+                        'date,kind,amount,category,description\n2025-01-15,expense,1500.00,Groceries,Food shopping',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.6,
+                          color: SFColors.muted,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 20),
                     TextField(

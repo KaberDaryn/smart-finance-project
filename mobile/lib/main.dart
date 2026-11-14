@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'api.dart';
+import 'design_system.dart';
 import 'formatters.dart';
 export 'formatters.dart';
 import 'sign_in.dart';
@@ -9,14 +10,6 @@ import 'planning_page.dart';
 import 'import_page.dart';
 import 'expense_categories.dart';
 import 'receipt_scan_page.dart';
-
-const _categoryColors = [
-  Color(0xFF3D8060),
-  Color(0xFF7EA7D5),
-  Color(0xFF9E8BD3),
-  Color(0xFFE6AE75),
-  Color(0xFFB7C1BB),
-];
 
 void main() => runApp(const FinanceApp());
 
@@ -29,42 +22,9 @@ class FinanceApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'Smart Finance',
     debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      fontFamily: 'FinanceRoboto',
-      useMaterial3: true,
-      colorSchemeSeed: const Color(0xFF255C48),
-      scaffoldBackgroundColor: const Color(0xFFF7FAF7),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFFF7FAF7),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-      cardTheme: CardThemeData(
-        color: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFFE9EEEA)),
-        ),
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFFF0F4F1),
-        indicatorColor: const Color(0xFFD5EDE0),
-        labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => TextStyle(
-            fontSize: 11,
-            fontWeight: states.contains(WidgetState.selected)
-                ? FontWeight.w700
-                : FontWeight.w500,
-          ),
-        ),
-      ),
-      inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(),
-      ),
-    ),
+    theme: SFTheme.light(),
+    darkTheme: SFTheme.dark(),
+    themeMode: ThemeMode.dark,
     home: SessionGate(client: client, initialToken: initialToken),
   );
 }
@@ -234,7 +194,59 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Smart Finance'),
+      titleSpacing: 16,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: SFColors.brand,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: SFColors.brand.withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 17,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text.rich(
+              TextSpan(
+                text: 'smart',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                children: [
+                  TextSpan(
+                    text: 'finance',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.55),
+                    ),
+                  ),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 17),
+            ),
+          ),
+        ],
+      ),
       actions: [
         IconButton(
           onPressed: importCsv,
@@ -293,12 +305,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
             : error != null
             ? _message(error!, retry: load)
             : page == 0
-            ? _overview()
+            ? SFEntrance(index: 0, child: _overview())
             : page == 1
-            ? _transactions()
+            ? SFEntrance(index: 0, child: _transactions())
             : page == 2
-            ? _insights()
-            : PlanningPage(api: api),
+            ? SFEntrance(index: 0, child: _insights())
+            : SFEntrance(index: 0, child: PlanningPage(api: api)),
       ),
     ),
   );
@@ -355,29 +367,40 @@ class _TransactionsPageState extends State<TransactionsPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 650;
+        final hour = DateTime.now().hour;
+        final dayPart = hour < 12
+            ? 'morning'
+            : hour < 18
+            ? 'afternoon'
+            : 'evening';
         final heading = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'YOUR FINANCIAL SNAPSHOT',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: const Color(0xFF87928C),
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.4,
-              ),
-            ),
+            Text('YOUR FINANCIAL SNAPSHOT', style: sfEyebrow()),
             const SizedBox(height: 8),
-            Text(
-              'Good evening, Aisultan ✳',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF1D2924),
-              ),
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    'Good $dayPart',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(
+                  Icons.auto_awesome,
+                  size: 17,
+                  color: SFColors.accent,
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             const Text(
               "Here's what's happening with your money.",
-              style: TextStyle(color: Color(0xFF87928C)),
+              style: TextStyle(color: SFColors.muted),
             ),
           ],
         );
@@ -558,9 +581,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     const Wrap(
                       spacing: 18,
                       children: [
-                        _ChartLegend(color: Color(0xFF3D8060), label: 'Income'),
                         _ChartLegend(
-                          color: Color(0xFFBCD8C5),
+                          color: SFColors.chartIncome,
+                          label: 'Income',
+                        ),
+                        _ChartLegend(
+                          color: SFColors.chartExpense,
                           label: 'Expenses',
                         ),
                       ],
@@ -623,12 +649,30 @@ class _TransactionsPageState extends State<TransactionsPage> {
             ))
               Padding(
                 padding: const EdgeInsets.only(top: 12),
-                child: TextButton.icon(
-                  onPressed: () => setState(() => page = 3),
-                  icon: const Icon(Icons.warning_amber),
-                  label: const Text(
-                    'A monthly budget has been exceeded. Review Planning.',
-                  ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.warning_amber,
+                      size: 20,
+                      color: SFColors.warn,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => page = 3),
+                        child: const Text(
+                          'A monthly budget has been exceeded. Review Planning.',
+                          style: TextStyle(
+                            color: SFColors.warn,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -645,61 +689,91 @@ class _TransactionsPageState extends State<TransactionsPage> {
     Color accent = const Color(0xFFF1F5F2),
     double? width,
   }) {
-    final foreground = dark ? Colors.white : const Color(0xFF202F26);
+    final foreground = dark ? Colors.white : SFColors.ink;
+    final cardColor = dark ? null : SFColors.surface;
     return SizedBox(
       width: width,
       height: 150,
-      child: Card(
-        color: dark ? const Color(0xFF245B48) : Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: SFPressable(
+        child: Card(
+          color: cardColor,
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: dark
-                            ? const Color(0xFFD2E2D8)
-                            : const Color(0xFF87928C),
-                      ),
-                    ),
-                  ),
-                  CircleAvatar(
-                    radius: 15,
-                    backgroundColor: dark ? const Color(0xFF3B725F) : accent,
-                    child: Icon(
-                      icon,
-                      size: 16,
-                      color: dark ? Colors.white : const Color(0xFF3D8060),
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  _dashboardMoney(amount),
-                  style: TextStyle(
-                    color: foreground,
-                    fontSize: 21,
-                    fontWeight: FontWeight.w800,
+              if (dark) ...[
+                const Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(gradient: SFColors.gradHero),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'All time',
-                style: TextStyle(
-                  color: dark
-                      ? const Color(0xFFD2E2D8)
-                      : const Color(0xFF9AA49D),
-                  fontSize: 11,
+                const Positioned.fill(child: SFHeroGlow()),
+              ],
+              Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: dark
+                                  ? Colors.white.withValues(alpha: 0.72)
+                                  : SFColors.muted,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: dark
+                                ? Colors.white.withValues(alpha: 0.14)
+                                : accent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            icon,
+                            size: 15,
+                            color: dark
+                                ? Colors.white
+                                : accent == const Color(0xFFE7F4E9)
+                                ? SFColors.income
+                                : accent == const Color(0xFFFBF0E6)
+                                ? SFColors.expense
+                                : SFColors.muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _dashboardMoney(amount),
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'All time',
+                      style: TextStyle(
+                        color: dark
+                            ? Colors.white.withValues(alpha: 0.72)
+                            : SFColors.faint,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -797,9 +871,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     Text(
                       '${(spent * 100 / total).round()}%',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: spent > total
-                            ? const Color(0xFFB54737)
-                            : const Color(0xFF3D8060),
+                        color: sfTone(spent * 100 / total),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -807,17 +879,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               ),
               if (total > 0) ...[
                 const SizedBox(height: 9),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: LinearProgressIndicator(
-                    value: (spent / total).clamp(0, 1).toDouble(),
-                    minHeight: 8,
-                    backgroundColor: const Color(0xFFE9F0EA),
-                    color: spent > total
-                        ? const Color(0xFFC96A56)
-                        : const Color(0xFF3D8060),
-                  ),
-                ),
+                SFProgressBar(value: (spent / total).clamp(0, 1).toDouble()),
               ],
               const SizedBox(height: 12),
               for (final budget in displayed)
@@ -825,17 +887,26 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   padding: const EdgeInsets.symmetric(vertical: 7),
                   child: Row(
                     children: [
+                      SFCategoryIcon(
+                        category: budget['category'] as String?,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           budget['category'] == '*'
                               ? 'All expenses'
                               : budget['category'] as String,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                          ),
                         ),
                       ),
                       Text(
                         '${_dashboardMoney(budget['spent_minor'] as int? ?? 0)} / ${_dashboardMoney(budget['amount_minor'] as int? ?? 0)}',
                         style: const TextStyle(
-                          color: Color(0xFF647269),
+                          color: SFColors.muted,
                           fontSize: 12,
                         ),
                       ),
@@ -950,39 +1021,42 @@ class _TransactionsPageState extends State<TransactionsPage> {
         borderRadius: BorderRadius.circular(10),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
+              SFRing(value: progress.toDouble(), size: 40),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       goal['name'] as String? ?? 'Savings goal',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '${(progress * 100).round()}%',
-                    style: const TextStyle(
-                      color: Color(0xFF3D8060),
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(height: 3),
+                    Text(
+                      '${_dashboardMoney(current)} saved · ${_dashboardMoney(target - current)} to go',
+                      style: const TextStyle(
+                        color: SFColors.muted,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    SFProgressBar(value: progress.toDouble(), height: 6),
+                  ],
+                ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(width: 10),
               Text(
-                '${_dashboardMoney(current)} saved · ${_dashboardMoney(target - current)} to go',
-                style: const TextStyle(color: Color(0xFF87928C), fontSize: 12),
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: LinearProgressIndicator(
-                  value: progress.toDouble(),
-                  minHeight: 7,
-                  backgroundColor: const Color(0xFFE9F0EA),
-                  color: const Color(0xFF3D8060),
+                '${(progress * 100).round()}%',
+                style: TextStyle(
+                  color: sfTone(progress * 100),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
                 ),
               ),
             ],
@@ -1039,9 +1113,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _chartBar(totals['income']! * ratio, const Color(0xFF3D8060)),
-                const SizedBox(width: 4),
-                _chartBar(totals['expense']! * ratio, const Color(0xFFBCD8C5)),
+                _chartBar(totals['income']! * ratio, SFColors.chartIncome),
+                const SizedBox(width: 5),
+                _chartBar(totals['expense']! * ratio, SFColors.chartExpense),
               ],
             ),
           ),
@@ -1056,11 +1130,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
   }
 
   Widget _chartBar(double height, Color color) => Container(
-    width: 9,
+    width: 12,
     height: height.clamp(2, 100).toDouble(),
     decoration: BoxDecoration(
       color: color,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
     ),
   );
 
@@ -1072,28 +1146,35 @@ class _TransactionsPageState extends State<TransactionsPage> {
         .first;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: income
-            ? const Color(0xFFE7F4E9)
-            : const Color(0xFFFBF0E6),
-        child: Icon(
-          income ? Icons.south_west : Icons.north_east,
-          color: income ? const Color(0xFF3D8060) : const Color(0xFFC78545),
-          size: 18,
-        ),
-      ),
+      leading: SFCategoryIcon(category: item['category'] as String?),
       title: Text(
         description.isEmpty
             ? item['category'] as String? ?? 'Transaction'
             : description,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
       ),
-      subtitle: Text('${item['category']} · $date'),
+      subtitle: Row(
+        children: [
+          Flexible(
+            child: SFPill(label: item['category'] as String? ?? 'Other'),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              date,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: SFColors.muted, fontSize: 11.5),
+            ),
+          ),
+        ],
+      ),
       trailing: Text(
         '${income ? '+' : '−'}${_dashboardMoney(item['amount_minor'] as int? ?? 0)}',
         style: TextStyle(
-          color: income ? const Color(0xFF3D8060) : const Color(0xFF1D2924),
+          color: income ? SFColors.income : SFColors.ink,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -1191,45 +1272,70 @@ class _TransactionsPageState extends State<TransactionsPage> {
           ),
         ),
         const SizedBox(height: 14),
-        Card(
-          color: const Color(0xFFF2F9F4),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                const CircleAvatar(
-                  backgroundColor: Color(0xFFE1F0E5),
-                  child: Icon(
-                    Icons.document_scanner_outlined,
-                    color: Color(0xFF245B48),
+        SFPressable(
+          onTap: () => add(scanReceipt: true),
+          child: Card(
+            color: Colors.transparent,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [SFColors.surfaceAlt, SFColors.surface],
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Scan a receipt',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        gradient: SFColors.gradPrimary,
+                        borderRadius: BorderRadius.circular(13),
+                        boxShadow: [
+                          BoxShadow(
+                            color: SFColors.brand.withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 3),
-                      Text(
-                        'Recognize the details, review them, then save.',
-                        style: TextStyle(
-                          color: Color(0xFF87928C),
-                          fontSize: 12,
-                        ),
+                      child: const Icon(
+                        Icons.document_scanner_outlined,
+                        color: Colors.white,
+                        size: 20,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Scan a receipt',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'Recognize the details, review them, then save.',
+                            style: TextStyle(
+                              color: SFColors.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: SFColors.brand),
+                  ],
                 ),
-                IconButton(
-                  tooltip: 'Recognize receipt',
-                  onPressed: () => add(scanReceipt: true),
-                  icon: const Icon(Icons.arrow_forward),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -1347,16 +1453,17 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      color: Color(0xFF87928C),
-                      fontSize: 12,
-                    ),
+                    style: const TextStyle(color: SFColors.muted, fontSize: 12),
                   ),
                 ),
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: iconColor,
-                  child: Icon(icon, size: 16, color: const Color(0xFF3D8060)),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: iconColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 15, color: SFColors.brand),
                 ),
               ],
             ),
@@ -1369,13 +1476,14 @@ class _TransactionsPageState extends State<TransactionsPage> {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
+                  letterSpacing: -0.4,
                 ),
               ),
             ),
             const SizedBox(height: 6),
             Text(
               detail,
-              style: const TextStyle(color: Color(0xFF87928C), fontSize: 11),
+              style: const TextStyle(color: SFColors.faint, fontSize: 11),
             ),
           ],
         ),
@@ -1391,74 +1499,44 @@ class _TransactionsPageState extends State<TransactionsPage> {
         .first;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      leading: CircleAvatar(
-        backgroundColor: expense
-            ? const Color(0xFFFBF0E6)
-            : const Color(0xFFE7F4E9),
-        child: Icon(
-          expense ? Icons.north_east : Icons.south_west,
-          color: expense ? const Color(0xFFC78545) : const Color(0xFF3D8060),
-          size: 18,
-        ),
-      ),
+      leading: SFCategoryIcon(category: item['category'] as String?),
       title: Text(
         description.isEmpty ? item['category'] as String : description,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      subtitle: Text('${item['category']} · $date'),
+      subtitle: Row(
+        children: [
+          Flexible(
+            child: SFPill(label: item['category'] as String? ?? 'Other'),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              date,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: SFColors.muted, fontSize: 11.5),
+            ),
+          ),
+        ],
+      ),
       trailing: Text(
         '${expense ? '−' : '+'}${_dashboardMoney(item['amount_minor'] as int)}',
         style: TextStyle(
           fontWeight: FontWeight.w700,
-          color: expense ? const Color(0xFF1D2924) : const Color(0xFF3D8060),
+          color: expense ? SFColors.ink : SFColors.income,
         ),
       ),
     );
   }
 
-  Widget _pageIntro(String eyebrow, String title, String subtitle) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        eyebrow,
-        style: const TextStyle(
-          color: Color(0xFF87928C),
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.4,
-        ),
-      ),
-      const SizedBox(height: 8),
-      Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-      ),
-      const SizedBox(height: 4),
-      Text(subtitle, style: const TextStyle(color: Color(0xFF87928C))),
-    ],
-  );
+  Widget _pageIntro(String eyebrow, String title, String subtitle) =>
+      SFPageHeader(eyebrow: eyebrow, title: title, subtitle: subtitle);
 
   Widget _emptyPanel(IconData icon, String title, String subtitle) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Icon(icon, size: 30, color: const Color(0xFF87928C)),
-          const SizedBox(height: 10),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 5),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFF87928C)),
-          ),
-        ],
-      ),
-    ),
+    child: SFEmpty(icon: icon, title: title, subtitle: subtitle),
   );
 
   Widget _insights() {
@@ -1572,6 +1650,13 @@ class _TransactionsPageState extends State<TransactionsPage> {
                             categories
                                 .map((category) => category['share'] as num)
                                 .toList(),
+                            categories
+                                .map(
+                                  (category) => sfCategoryStyle(
+                                    category['category'] as String?,
+                                  ).color,
+                                )
+                                .toList(),
                           ),
                           child: Center(
                             child: Column(
@@ -1582,12 +1667,13 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                   style: const TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.3,
                                   ),
                                 ),
                                 const Text(
                                   'Total spent',
                                   style: TextStyle(
-                                    color: Color(0xFF87928C),
+                                    color: SFColors.muted,
                                     fontSize: 10,
                                   ),
                                 ),
@@ -1607,17 +1693,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color:
-                                            _categoryColors[categories.indexOf(
-                                                  entry,
-                                                ) %
-                                                _categoryColors.length],
-                                        shape: BoxShape.circle,
-                                      ),
+                                    SFDot(
+                                      color: sfCategoryStyle(
+                                        entry['category'] as String?,
+                                      ).color,
                                     ),
                                     const SizedBox(width: 7),
                                     Expanded(
@@ -1685,8 +1764,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           child: LinearProgressIndicator(
                             value: (category['share'] as num).toDouble(),
                             minHeight: 7,
-                            backgroundColor: const Color(0xFFE9F0EA),
-                            color: const Color(0xFF3D8060),
+                            backgroundColor: SFColors.line,
+                            color: sfCategoryStyle(
+                              category['category'] as String?,
+                            ).color,
                             semanticsLabel:
                                 '${category['category']} share of expenses',
                             semanticsValue:
@@ -1715,7 +1796,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    const Icon(Icons.auto_awesome, color: Color(0xFFC78545)),
+                    const Icon(Icons.auto_awesome, color: SFColors.accent),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -1724,7 +1805,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(
                       Icons.lightbulb_outline,
-                      color: Color(0xFF3D8060),
+                      color: SFColors.income,
                     ),
                     title: Text(
                       'Keep building your financial picture',
@@ -1738,13 +1819,24 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   for (final budget in budgetWarnings)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        budget['over_budget'] == true
-                            ? Icons.warning_amber
-                            : Icons.trending_up,
-                        color: budget['over_budget'] == true
-                            ? const Color(0xFFC96A56)
-                            : const Color(0xFFC78545),
+                      leading: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: budget['over_budget'] == true
+                              ? SFColors.dangerSoft
+                              : SFColors.warnSoft,
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: Icon(
+                          budget['over_budget'] == true
+                              ? Icons.warning_amber
+                              : Icons.trending_up,
+                          color: budget['over_budget'] == true
+                              ? SFColors.danger
+                              : SFColors.warn,
+                          size: 19,
+                        ),
                       ),
                       title: Text(
                         budget['category'] == '*'
@@ -1806,8 +1898,8 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           child: LinearProgressIndicator(
                             value: (month['expense_minor'] as int) / peak,
                             minHeight: 7,
-                            backgroundColor: const Color(0xFFE9F0EA),
-                            color: const Color(0xFFBCD8C5),
+                            backgroundColor: SFColors.line,
+                            color: SFColors.chartExpense,
                             semanticsLabel: '${month['month']} expenses',
                             semanticsValue:
                                 '${((month['expense_minor'] as int) * 100 / peak).round()}%',
@@ -1821,40 +1913,53 @@ class _TransactionsPageState extends State<TransactionsPage> {
           ),
         ),
         const SizedBox(height: 14),
-        Card(
-          color: const Color(0xFFEDF5EF),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Expense estimate',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 10),
-                if (forecast['status'] == 'ok') ...[
-                  Text(
-                    '${forecast['forecast_month']}: ${money(forecast['forecast_minor'] as int)}',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF245B48),
+        SFPanel(
+          gradient: SFColors.gradHero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.auto_graph,
+                    color: SFColors.brandStrong,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Expense estimate',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Average of the previous three complete months. Missing months count as zero, so keep your diary complete. Actual expenses may differ.',
-                    style: TextStyle(color: Color(0xFF647269)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (forecast['status'] == 'ok') ...[
+                Text(
+                  '${forecast['forecast_month']}: ${money(forecast['forecast_minor'] as int)}',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: SFColors.brandStrong,
+                    letterSpacing: -0.4,
                   ),
-                ] else
-                  Text(
-                    forecast['status'] == 'unavailable'
-                        ? 'Forecasting is not available yet.'
-                        : 'Record expenses across at least three complete months to see an estimate.',
-                    style: const TextStyle(color: Color(0xFF647269)),
-                  ),
-              ],
-            ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Average of the previous three complete months. Missing months count as zero, so keep your diary complete. Actual expenses may differ.',
+                  style: TextStyle(color: Color(0xFFB9C4BD)),
+                ),
+              ] else
+                Text(
+                  forecast['status'] == 'unavailable'
+                      ? 'Forecasting is not available yet.'
+                      : 'Record expenses across at least three complete months to see an estimate.',
+                  style: const TextStyle(color: Color(0xFFB9C4BD)),
+                ),
+            ],
           ),
         ),
         if (((insights!['recommendations'] as List?) ?? []).isNotEmpty) ...[
@@ -1873,9 +1978,18 @@ class _TransactionsPageState extends State<TransactionsPage> {
                       in (insights!['recommendations'] as List).cast<String>())
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(
-                        Icons.lightbulb_outline,
-                        color: Color(0xFFC78545),
+                      leading: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: SFColors.warnSoft,
+                          borderRadius: BorderRadius.circular(11),
+                        ),
+                        child: const Icon(
+                          Icons.lightbulb_outline,
+                          color: SFColors.warn,
+                          size: 19,
+                        ),
                       ),
                       title: Text(note),
                     ),
@@ -1913,22 +2027,23 @@ class _ChartLegend extends StatelessWidget {
 }
 
 class _CategoryDonutPainter extends CustomPainter {
-  const _CategoryDonutPainter(this.shares);
+  const _CategoryDonutPainter(this.shares, this.colors);
   final List<num> shares;
+  final List<Color> colors;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
+      ..strokeWidth = 15
       ..strokeCap = StrokeCap.butt;
     canvas.drawArc(
       rect.deflate(12),
       -math.pi / 2,
       math.pi * 2,
       false,
-      paint..color = const Color(0xFFE9F0EA),
+      paint..color = SFColors.line,
     );
     var start = -math.pi / 2;
     for (var index = 0; index < shares.length; index++) {
@@ -1939,7 +2054,7 @@ class _CategoryDonutPainter extends CustomPainter {
           start,
           sweep,
           false,
-          paint..color = _categoryColors[index % _categoryColors.length],
+          paint..color = colors[index % colors.length],
         );
         start += sweep;
       }
@@ -2290,25 +2405,29 @@ class _AddPageState extends State<AddPage> {
                           ],
                           const SizedBox(height: 20),
                         ] else
-                          DropdownButtonFormField<String>(
-                            initialValue: kind,
-                            decoration: const InputDecoration(
-                              labelText: 'Type',
-                            ),
-                            items: const [
-                              DropdownMenuItem(
+                          SegmentedButton<String>(
+                            segments: const [
+                              ButtonSegment(
                                 value: 'expense',
-                                child: Text('Expense'),
+                                icon: Icon(
+                                  Icons.remove_circle_outline,
+                                  size: 16,
+                                ),
+                                label: Text('Expense'),
                               ),
-                              DropdownMenuItem(
+                              ButtonSegment(
                                 value: 'income',
-                                child: Text('Income'),
+                                icon: Icon(Icons.add_circle_outline, size: 16),
+                                label: Text('Income'),
                               ),
                             ],
-                            onChanged: saving
+                            selected: {kind},
+                            onSelectionChanged: saving
                                 ? null
-                                : (value) => setState(() => kind = value!),
+                                : (selection) =>
+                                      setState(() => kind = selection.first),
                           ),
+                        if (!scanned) const SizedBox(height: 20),
                         const SizedBox(height: 20),
                         TextFormField(
                           key: const ValueKey('transaction-amount'),

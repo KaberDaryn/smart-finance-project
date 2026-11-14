@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'api.dart';
+import 'design_system.dart';
 import 'receipt_image.dart';
 
 typedef ReceiptPhotoPicker = Future<Uint8List?> Function(ImageSource source);
@@ -69,10 +70,37 @@ class _ReceiptScanPageState extends State<ReceiptScanPage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            const Icon(Icons.receipt_long_outlined, size: 64),
-            const SizedBox(height: 20),
+            Center(
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF0E5A44), Color(0xFF0A3D2F)],
+                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: SFColors.brand.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.receipt_long_outlined,
+                  size: 32,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
             const Text(
               'Choose a clear photo of the whole receipt. The photo is sent to an external service for recognition. You can review and edit every field before saving.',
+              textAlign: TextAlign.center,
+              style: TextStyle(height: 1.55, color: SFColors.muted),
             ),
             const SizedBox(height: 16),
             CheckboxListTile(
