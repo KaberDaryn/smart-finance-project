@@ -1,7 +1,12 @@
-# Flutter client
+# Android app
 
-The client supports account access, dated income and expense records, CSV import, balance totals, search, filters, category and monthly charts, budgets, and savings goals. It handles loading, empty data, invalid input, connection failures, and uncertain save results.
+The Flutter Android app opens the current Smart Finance frontend from `../web/` in an embedded WebView. The retired Flutter web target has been removed, so `flutter run` on Android launches the same frontend as the browser app.
 
-The analytical interface accepts category suggestions and expense forecasts when the team's analytics module is connected. Without it, manual category entry and recorded spending charts remain available.
+Start the backend from the repository root with `python -m backend.server`, then run from this directory:
 
-Development and build commands are in docs/RUNNING.md. The included unit tests check exact amount parsing and currency formatting. Android source is included, but the verified runnable build targets the web browser.
+```sh
+flutter pub get
+flutter run -d emulator-5554
+```
+
+The default URL is `http://10.0.2.2:8000`. Override it with `--dart-define=WEB_APP_URL=http://HOST:PORT` when using another server.

@@ -10,6 +10,7 @@ import 'planning_page.dart';
 import 'import_page.dart';
 import 'expense_categories.dart';
 import 'receipt_scan_page.dart';
+import 'web_frontend.dart';
 
 void main() => runApp(const FinanceApp());
 
@@ -25,7 +26,8 @@ class FinanceApp extends StatelessWidget {
     theme: SFTheme.light(),
     darkTheme: SFTheme.dark(),
     themeMode: ThemeMode.dark,
-    home: SessionGate(client: client, initialToken: initialToken),
+    // Route every Android launch to the current frontend served from `web/`.
+    home: const WebFrontendPage(),
   );
 }
 

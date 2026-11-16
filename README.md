@@ -1,6 +1,6 @@
 # Smart Finance
 
-Smart Finance is a team diploma project for personal finance planning and expense analysis in KZT. The application combines a Flutter client, a Python API, and relational storage. The team implementation covers transaction recording, spending analysis, and financial planning.
+Smart Finance is a team diploma project for personal finance planning and expense analysis in KZT. The application combines a Python API, relational storage, a hand-written web frontend, and a Flutter Android app that opens the same frontend inside the app.
 
 ## Application
 
@@ -29,7 +29,7 @@ The Insights screen displays expense categories and monthly totals. Planning sho
 - [User guide](docs/USER_GUIDE.md)
 - [Verification](docs/TESTING.md)
 
-The local browser application runs with Python 3.11 or newer. START_LOCAL.cmd starts the server, and START_DEMO.cmd adds a fictional demonstration account. Docker Compose runs the same application with PostgreSQL. The current release is for local demonstration; production hosting and native Android testing remain outside the verified scope.
+The local application runs with Python 3.11 or newer. START_LOCAL.cmd starts the server, and START_DEMO.cmd adds a fictional demonstration account. Docker Compose runs the same application with PostgreSQL. The Android app requires the local server and shows the same frontend without opening Chrome.
 
 ## Receipt scanning
 
@@ -50,18 +50,17 @@ python -m backend.server
 
 In PowerShell use `$env:GEMINI_API_KEY = 'your-local-key'` instead of `export`. Never put the key in Dart defines, source, screenshots, or commits.
 
-The browser frontend lives in `web/`: `index.html`, `styles.css`, `app.js`, and `favicon.png`. These are plain hand-written files with no build step and no framework; edit them directly and refresh the browser at http://127.0.0.1:8000. The served UI no longer comes from `flutter build web`; the previously supplied compiled Flutter web build was removed from `web/`.
+The frontend lives in `web/`: `index.html`, `styles.css`, `app.js`, and `favicon.png`. These are plain hand-written files with no build step and no framework. The browser server and Android app both load these same files; there is no separate Flutter web frontend.
 
-For mobile client development:
+To run the Android app, start the backend in one terminal and then run:
 
 ```sh
 cd mobile
 flutter pub get
-flutter analyze
-flutter test
+flutter run -d emulator-5554
 ```
 
-The Flutter client in `mobile/` remains the mobile (Android) client and is unchanged. Flutter 3.44.2 is the version used by this project.
+The emulator URL defaults to `http://10.0.2.2:8000`. Set `WEB_APP_URL` with `--dart-define` to use another server. Flutter 3.44.2 is the version used by this project.
 
 The client corrects orientation, scales the long side to at most 1500 px, removes image metadata, and uploads JPEG at quality 82. JPEG, PNG, and WebP input is supported; export HEIC as JPEG first. The ledger stays in KZT. Foreign receipts require a manually entered KZT equivalent; the original amount and currency are retained in the description. No currency conversion service is used.
 

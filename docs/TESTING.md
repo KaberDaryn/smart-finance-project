@@ -14,7 +14,7 @@ Docker Compose built and started the integrated application with PostgreSQL 17 o
 
 ## Reproduction
 
-From the repository root, run python -m unittest discover -s tests -v and python -m analytics.evaluate. From mobile/, run flutter pub get, flutter analyze, flutter test, and flutter build web --no-web-resources-cdn.
+From the repository root, run `python -m unittest discover -s tests -v` and `python -m analytics.evaluate`. To build the Android app from `mobile/`, run `flutter pub get` and `flutter build apk`. The app uses the web frontend served by `python -m backend.server`; there is no Flutter web build target.
 
 For PostgreSQL, install requirements.txt, set TEST_DATABASE_URL to a disposable test database, and run python -m unittest discover -s tests_postgres -v. The test uses its own temporary schema.
 
@@ -25,7 +25,8 @@ After adding the analytics files, an existing container needs a rebuild: docker 
 | Scenario | Evidence status |
 | --- | --- |
 | Recreate application/PostgreSQL containers and confirm persistent account data | Passed locally |
-| Android emulator and physical device | Pending device run |
+| Android emulator | Verified locally with the embedded frontend |
+| Physical Android device | Pending manual run |
 | Keyboard, screen reader, and 200% browser zoom | Pending manual session |
 | Real-user task study and observations | Pending participant sessions |
 | Integrated browser walkthrough before handoff | Passed locally for the scenarios described above |

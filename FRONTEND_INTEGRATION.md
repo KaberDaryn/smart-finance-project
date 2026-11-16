@@ -1,6 +1,6 @@
 # Smart Finance — integrated web frontend
 
-The browser frontend is the four hand-written files in `web/`: `index.html`, `styles.css`, `app.js`, and `favicon.png`. There is no build step and no framework; the Python backend serves them as-is, and the previously supplied compiled Flutter web build has been removed. `web/` contains only these files. The Flutter source in `mobile/` is untouched and remains the mobile client.
+The frontend is the four hand-written files in `web/`: `index.html`, `styles.css`, `app.js`, and `favicon.png`. There is no build step and no framework; the Python backend serves them as-is. The Flutter Android app in `mobile/` opens this same frontend in an embedded WebView. The old Flutter web target and its build-to-`web/` script have been removed so they cannot replace the current frontend.
 
 ## Run locally (Windows)
 1. Run `START_LOCAL.cmd` (starts `python -m backend.server`).
@@ -32,6 +32,6 @@ Headers `date,kind,amount,category[,description]`. The description column is opt
 ## Data conventions
 - This frontend connects to the actual API; it does not use fictional transaction data. The only seeded data is the demo account created by `START_DEMO.cmd`.
 - Amounts are submitted as integer minor units to match the API contract (150001 represents 1500.01 KZT); the UI converts between minor units and decimal tenge for display and input.
-- Categories match the analytics module and the Flutter client. Expenses: Groceries, Transport, Housing, Entertainment, Health, Cafe, Clothing, Other. Income: Salary, Freelance, Bonus, Investment, Gift, Other.
+- Categories match the analytics module. Expenses: Groceries, Transport, Housing, Entertainment, Health, Cafe, Clothing, Other. Income: Salary, Freelance, Bonus, Investment, Gift, Other.
 
 Automated backend tests pass (`python -m unittest discover -s tests`). The browser flow still needs a manual check with a configured receipt provider before pushing.

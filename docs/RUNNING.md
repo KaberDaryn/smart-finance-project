@@ -8,7 +8,7 @@ Python 3.11 or newer is required. The SQLite demonstration has no third-party Py
 python -m backend.server
 ```
 
-Open http://127.0.0.1:8000 and create an account. The compiled Flutter client is served by the same process. Keep the terminal open while using the application. Stop the process with Ctrl+C.
+Open http://127.0.0.1:8000 and create an account. The server serves the hand-written frontend from `web/`. Keep the terminal open while using the application. Stop the process with Ctrl+C.
 
 For fictional sample data, run START_DEMO.cmd, or run `python -m backend.demo` before starting the server. Sign in with username `demo` and password `DemoFinance2026!`. The seed creates only a separate demo account and leaves existing accounts unchanged. Running it again keeps the existing demo data. This published password is only for the fictional local demonstration.
 
@@ -25,17 +25,24 @@ docker compose exec api python -m backend.demo
 
 Open http://127.0.0.1:8000. PostgreSQL data remains in the named volume after a container restart. `docker compose down` stops the services without removing the volume. The database password can be changed in a local .env file based on .env.example. A password change on an existing volume also requires changing the PostgreSQL role password; a new environment value does not reset an existing database.
 
-## Editing the client
+## Android app
 
-The client was built with Flutter 3.44.2 and Dart 3.12.2. From mobile/:
+The Android app uses a Flutter shell with an embedded WebView, so it opens the same frontend as the browser without Chrome controls. Start the backend in one terminal:
 
 ```sh
-flutter pub get
-flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8000
-flutter analyze
-flutter test
+python -m backend.server
 ```
 
-The default API address is the current web origin. The explicit address above is needed when the Flutter development server uses another port. An Android emulator uses http://10.0.2.2:8000. Android source is included; a physical-device or release-APK run has not been verified in this version.
+In another terminal, run the app from `mobile/`:
 
-`scripts/build_web.ps1` rebuilds the client and copies it into web/. Its fonts and CanvasKit assets are bundled locally. The Python server should then be restarted if its source also changed.
+```sh
+cd mobile
+flutter pub get
+flutter run -d emulator-5554
+```
+
+The app defaults to `http://10.0.2.2:8000`, the Android emulator's address for the host computer. To use a different backend, pass `--dart-define=WEB_APP_URL=http://HOST:PORT` to `flutter run`.
+
+## Editing the frontend
+
+The current frontend is in `web/`: `index.html`, `styles.css`, and `app.js`. Edit those files directly. The Flutter app loads the same frontend from the Python server.

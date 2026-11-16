@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
+
 import 'api.dart';
-import 'design_system.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key, required this.api, required this.onSignedIn});
+
   final FinanceApi api;
   final void Function(String token) onSignedIn;
+
   @override
   State<SignInPage> createState() => _SignInPageState();
 }
 
 class _SignInPageState extends State<SignInPage> {
+  static const _background = Color(0xFF0C0E12);
+  static const _card = Color(0xFF151820);
+  static const _field = Color(0xFF20232B);
+  static const _line = Color(0xFF3A3F49);
+  static const _ink = Color(0xFFF0EDE6);
+  static const _muted = Color(0xFF9C978B);
+  static const _faint = Color(0xFF6E6A5F);
+  static const _buttonStart = Color(0xFFDCE3EB);
+  static const _buttonEnd = Color(0xFFA0AAB9);
+
   final form = GlobalKey<FormState>();
   final username = TextEditingController();
   final password = TextEditingController();
@@ -53,424 +65,313 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final ink = Theme.of(context).colorScheme.onSurface;
-    final wide = MediaQuery.of(context).size.width >= 640;
-    final formCard = _authCard(context, ink, wide);
-
-    if (wide) {
-      return Scaffold(
-        body: Row(
-          children: [
-            const Expanded(flex: 5, child: _BrandHero()),
-            Expanded(
-              flex: 6,
-              child: Center(child: SingleChildScrollView(child: formCard)),
-            ),
-          ],
-        ),
-      );
-    }
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: _background,
+    body: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: constraints.maxHeight > 700 ? 28 : 16,
+          ),
+          child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const _BrandBadge(),
-                    const SizedBox(height: 18),
-                    formCard,
+              constraints: const BoxConstraints(maxWidth: 540),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _card,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: _line),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x66000000),
+                      blurRadius: 48,
+                      offset: Offset(0, 22),
+                    ),
                   ],
                 ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _authCard(BuildContext context, Color ink, bool wide) {
-    final card = Padding(
-      padding: EdgeInsets.all(wide ? 30 : 22),
-      child: Form(
-        key: form,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              registering
-                  ? 'Create your account'
-                  : 'Your finances, in one place',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: ink,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              registering
-                  ? 'Create an account to keep track of your transactions and spending insights.'
-                  : 'Sign in to view your transactions and spending insights.',
-              style: const TextStyle(
-                fontSize: 12.5,
-                height: 1.5,
-                color: SFColors.muted,
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              controller: username,
-              enabled: !busy,
-              autocorrect: false,
-              autofillHints: const [AutofillHints.username],
-              decoration: _authDecoration('Username', Icons.person_outline),
-              validator: (value) =>
-                  RegExp(r'^[A-Za-z0-9_]{3,40}$').hasMatch(value?.trim() ?? '')
-                  ? null
-                  : 'Use 3–40 letters, numbers, or underscores.',
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: password,
-              enabled: !busy,
-              obscureText: obscurePassword,
-              autofillHints: [
-                registering
-                    ? AutofillHints.newPassword
-                    : AutofillHints.password,
-              ],
-              decoration: _authDecoration('Password', Icons.lock_outline)
-                  .copyWith(
-                    helperText: 'At least 10 characters',
-                    helperStyle: const TextStyle(
-                      fontSize: 10,
-                      color: SFColors.muted,
-                    ),
-                    suffixIcon: IconButton(
-                      onPressed: () =>
-                          setState(() => obscurePassword = !obscurePassword),
-                      icon: Icon(
-                        obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        size: 20,
-                        color: SFColors.muted,
-                      ),
-                    ),
-                  ),
-              onFieldSubmitted: (_) => submit(),
-              validator: (value) =>
-                  (value?.length ?? 0) >= 10 && (value?.length ?? 0) <= 128
-                  ? null
-                  : 'Use 10–128 characters.',
-            ),
-            if (error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 14),
-                child: Semantics(
-                  liveRegion: true,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: SFColors.dangerSoft,
-                      borderRadius: BorderRadius.circular(11),
-                    ),
-                    child: Text(
-                      error!,
-                      style: const TextStyle(
-                        color: SFColors.danger,
-                        fontSize: 12.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 48,
-              child: SFPressable(
-                onTap: busy ? null : () {},
-                child: FilledButton(
-                  onPressed: busy ? null : submit,
-                  child: Text(
-                    busy
-                        ? 'Please wait...'
-                        : registering
-                        ? 'Create account'
-                        : 'Sign in',
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            TextButton(
-              onPressed: busy
-                  ? null
-                  : () => setState(() {
-                      registering = !registering;
-                      error = null;
-                    }),
-              child: Text(
-                registering
-                    ? 'Already have an account? Sign in'
-                    : 'New here? Create an account',
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Your data stays in the local Smart Finance backend. '
-              'Passwords are stored salted & hashed.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 10.5, color: SFColors.faint),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!wide) return card;
-    return Card(child: card);
-  }
-
-  InputDecoration _authDecoration(String label, IconData icon) =>
-      InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, size: 19, color: SFColors.muted),
-      );
-}
-
-/// Rounded brand mark shown above the mobile sign-in card.
-class _BrandBadge extends StatelessWidget {
-  const _BrandBadge();
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: SFColors.brand,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: SFColors.brand.withValues(alpha: 0.35),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: const Icon(Icons.auto_awesome, size: 21, color: Colors.white),
-      ),
-      const SizedBox(width: 10),
-      Text.rich(
-        TextSpan(
-          text: 'smart',
-          style: const TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-            color: SFColors.ink,
-          ),
-          children: [
-            TextSpan(
-              text: 'finance',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: SFColors.ink.withValues(alpha: 0.55),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-/// Deep emerald showcase panel on wide screens, mirroring the web sign-in hero.
-class _BrandHero extends StatelessWidget {
-  const _BrandHero();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF0E3D33), Color(0xFF0B2C25)],
-      ),
-    ),
-    child: Stack(
-      children: [
-        Positioned.fill(child: CustomPaint(painter: _HeroGridPainter())),
-        Center(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Padding(
-                padding: const EdgeInsets.all(48),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 26, 24, 24),
+                  child: Form(
+                    key: form,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          child: const Icon(
-                            Icons.auto_awesome,
-                            size: 18,
-                            color: Colors.white,
+                        const _SparkMark(),
+                        const SizedBox(height: 22),
+                        Text(
+                          registering ? 'Create your account' : 'Welcome back',
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 28,
+                            height: 1.12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.7,
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        const Text(
-                          'smartfinance',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.4,
-                            color: Colors.white,
+                        const SizedBox(height: 9),
+                        Text(
+                          registering
+                              ? 'Create an account to manage your personal finances.'
+                              : 'Sign in to your personal finance workspace.',
+                          style: const TextStyle(
+                            color: _muted,
+                            fontSize: 14,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 26),
+                        _fieldLabel('Username'),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: username,
+                          enabled: !busy,
+                          autocorrect: false,
+                          autofillHints: const [AutofillHints.username],
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: _decoration(
+                            'e.g. daryn',
+                            Icons.person_outline,
+                          ),
+                          validator: (value) =>
+                              RegExp(
+                                r'^[A-Za-z0-9_]{3,40}$',
+                              ).hasMatch(value?.trim() ?? '')
+                              ? null
+                              : 'Use 3–40 letters, numbers, or underscores.',
+                        ),
+                        const SizedBox(height: 17),
+                        _fieldLabel('Password'),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: password,
+                          enabled: !busy,
+                          obscureText: obscurePassword,
+                          autofillHints: [
+                            registering
+                                ? AutofillHints.newPassword
+                                : AutofillHints.password,
+                          ],
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration:
+                              _decoration(
+                                '10–128 characters',
+                                Icons.account_balance_wallet_outlined,
+                              ).copyWith(
+                                suffixIcon: IconButton(
+                                  onPressed: () => setState(
+                                    () => obscurePassword = !obscurePassword,
+                                  ),
+                                  icon: Icon(
+                                    obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 19,
+                                    color: _muted,
+                                  ),
+                                ),
+                              ),
+                          validator: (value) =>
+                              (value?.length ?? 0) >= 10 &&
+                                  (value?.length ?? 0) <= 128
+                              ? null
+                              : 'Use 10–128 characters.',
+                          onFieldSubmitted: (_) => submit(),
+                        ),
+                        if (error != null) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF321D23),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF683640),
+                              ),
+                            ),
+                            child: Text(
+                              error!,
+                              style: const TextStyle(
+                                color: Color(0xFFFFB4AB),
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 32,
+                              child: Checkbox(
+                                value: registering,
+                                onChanged: busy
+                                    ? null
+                                    : (value) => setState(() {
+                                        registering = value ?? false;
+                                        error = null;
+                                      }),
+                                side: const BorderSide(
+                                  color: Color(0xFFB9B7B0),
+                                  width: 1.5,
+                                ),
+                                activeColor: _buttonStart,
+                                checkColor: _background,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                            const SizedBox(width: 9),
+                            GestureDetector(
+                              onTap: busy
+                                  ? null
+                                  : () => setState(() {
+                                      registering = !registering;
+                                      error = null;
+                                    }),
+                              child: const Text(
+                                'Create a new account',
+                                style: TextStyle(color: _muted, fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          height: 54,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [_buttonStart, _buttonEnd],
+                              ),
+                              borderRadius: BorderRadius.circular(17),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x267F8FA5),
+                                  blurRadius: 20,
+                                  offset: Offset(0, 7),
+                                ),
+                              ],
+                            ),
+                            child: FilledButton(
+                              onPressed: busy ? null : submit,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                disabledBackgroundColor: Colors.transparent,
+                                foregroundColor: const Color(0xFF171A20),
+                                disabledForegroundColor: const Color(
+                                  0xFF171A20,
+                                ),
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(17),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              child: Text(
+                                busy
+                                    ? 'Please wait...'
+                                    : registering
+                                    ? 'Create account'
+                                    : 'Sign in',
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Your data stays in the local Smart Finance backend. '
+                          'Passwords are stored salted & hashed.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: _faint,
+                            fontSize: 12,
+                            height: 1.45,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
-                    const Text(
-                      'Money clarity,\nbeautifully simple.',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        height: 1.18,
-                        letterSpacing: -0.8,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    const Text(
-                      'Record income and expenses in KZT, scan receipts, '
-                      'follow your budgets and reach savings goals.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.6,
-                        color: Color(0xFFB7D5C4),
-                      ),
-                    ),
-                    const SizedBox(height: 34),
-                    ...const [
-                      _HeroPoint(
-                        icon: Icons.receipt_long_outlined,
-                        title: 'Receipt scanning',
-                        subtitle: 'Snap a receipt, review, save.',
-                      ),
-                      _HeroPoint(
-                        icon: Icons.pie_chart_outline,
-                        title: 'Spending insights',
-                        subtitle: 'Breakdowns and a transparent forecast.',
-                      ),
-                      _HeroPoint(
-                        icon: Icons.savings_outlined,
-                        title: 'Budgets & goals',
-                        subtitle: 'Limits that keep spending on track.',
-                      ),
-                    ],
-                    const SizedBox(height: 36),
-                    const Text(
-                      'Amounts are recorded in Kazakhstani tenge (₸).',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF7FA391)),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ],
+      ),
+    ),
+  );
+
+  Widget _fieldLabel(String label) => Text(
+    label,
+    style: const TextStyle(
+      color: _muted,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+
+  InputDecoration _decoration(String hint, IconData icon) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: _muted, fontWeight: FontWeight.w500),
+    prefixIcon: Icon(icon, size: 18, color: _muted),
+    filled: true,
+    fillColor: _field,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 16),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Color(0xFF343841)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Color(0xFFAEB8C4), width: 1.3),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Color(0xFFE07A7A)),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Color(0xFFE07A7A), width: 1.3),
     ),
   );
 }
 
-class _HeroPoint extends StatelessWidget {
-  const _HeroPoint({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-  final IconData icon;
-  final String title;
-  final String subtitle;
+class _SparkMark extends StatelessWidget {
+  const _SparkMark();
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 18),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, size: 18, color: const Color(0xFF5FC49C)),
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE0E6EE), Color(0xFFA0AAB9)],
         ),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF9FC4B2)),
-              ),
-            ],
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x668F9BAD),
+            blurRadius: 22,
+            offset: Offset(0, 8),
           ),
-        ),
-      ],
+        ],
+      ),
+      child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
     ),
   );
-}
-
-class _HeroGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..color = Colors.white.withValues(alpha: 0.04);
-    const step = 72.0;
-    for (var x = 0.0; x <= size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (var y = 0.0; y <= size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _HeroGridPainter oldDelegate) => false;
 }

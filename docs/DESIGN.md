@@ -2,17 +2,17 @@
 
 ## Design approach
 
-The browser dashboard is hand-written HTML, CSS, and JavaScript in `web/` with no framework and no build step; the Flutter client in `mobile/` shares the same brand language through its own design kit in `lib/design_system.dart` (palette, themes, panels, stat cards, progress bars, rings, category tiles, buttons). This document describes both clients.
+The interface is hand-written HTML, CSS, and JavaScript in `web/` with no framework and no build step. Both the browser and Android app use this same frontend; the Android app loads it in an embedded WebView.
 
-Typography uses Inter and Space Grotesk on the web; the Flutter client uses the bundled Roboto family with tight display weights and tabular figures for amounts. The palette is an emerald brand green on neutral surfaces in both clients: deep green for primary actions, the balance summary, and the planning banner; soft green tints for active navigation and positive amounts; amber for expense accents and overspending warnings. Colour is never the only signal — signs, icons, and labels repeat it.
+Typography uses Inter and Space Grotesk. The palette uses emerald green on neutral surfaces: deep green for primary actions, the balance summary, and the planning banner; soft green tints for active navigation and positive amounts; amber for expense accents and overspending warnings. Colour is never the only signal — signs, icons, and labels repeat it.
 
-Both clients follow the operating-system dark-mode preference. The web dashboard selects themes through a `data-theme` attribute with a persisted `localStorage` override (`sf_theme`); the Flutter client ships a matching dark `ThemeData` and lets `ThemeMode.system` decide.
+The frontend supports light and dark themes. It selects themes through a `data-theme` attribute with a persisted `localStorage` override (`sf_theme`).
 
 ## Layout and components
 
-The web dashboard uses a fixed sidebar with the brand, primary navigation (Overview, Transactions, Insights, Planning), a product card, and the profile row; a topbar shows the breadcrumb, the current month, and a refresh action. The Flutter client keeps the same four destinations in a bottom navigation bar, an app bar with the brand mark and CSV, refresh, and sign-out actions, and a floating add button. Sign-in and modals are separate tasks outside the page flow in both clients.
+The dashboard uses a fixed sidebar with the brand, primary navigation (Overview, Transactions, Insights, Planning), a product card, and the profile row; a topbar shows the breadcrumb, the current month, and a refresh action. On narrow screens, the same frontend uses a bottom navigation bar. Sign-in and modals are separate tasks outside the page flow.
 
-Each category keeps a stable accent colour and icon (tile in lists, pill, chart segment) across both clients, so a category is recognisable everywhere. Press feedback on mobile uses a short scale-down animation; charts, progress bars, and rings mirror the web proportions.
+Each category keeps a stable accent colour and icon (tile in lists, pill, chart segment), so a category is recognisable everywhere. Press feedback on mobile uses a short scale-down animation; charts, progress bars, and rings adapt to the available screen width.
 
 Components are shared across pages: stat cards for totals, bordered panels for content groups, SVG charts (cash-flow and monthly-trend bars, a category donut, budget and goal progress rings), tables for transaction lists, modals for add/delete/receipt flows, and toasts for save and error confirmations. Each category has a stable accent colour used in its icon chip, table pill, and chart segment, so a category is recognisable across pages.
 
