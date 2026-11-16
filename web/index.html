@@ -10,8 +10,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=8">
 <script>
+/* Kill any service worker left by the old Flutter demo build: it caches the old
+   frontend and keeps serving it even after the server is updated. */
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){
+  rs.forEach(function(r){if(!r.active||!r.active.scriptURL.includes('sw-new')){r.unregister();
+    if(caches){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});}}});
+});}
 /* Apply the saved theme before first paint. Dark by default; 'system' follows the OS. */
 try{var t=localStorage.getItem('sf_theme')||'dark';
 document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;}catch(e){document.documentElement.dataset.theme='dark';}
@@ -335,6 +341,6 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 <div class="modal-root" id="modalRoot"></div>
 <div class="modal-root" id="qrRoot"></div>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
