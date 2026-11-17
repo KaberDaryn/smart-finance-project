@@ -10,14 +10,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 <script>
-/* Kill any service worker left by the old Flutter demo build: it caches the old
-   frontend and keeps serving it even after the server is updated. */
+/* This frontend has no service worker; remove leftover app shells and caches. */
 if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){
-  rs.forEach(function(r){if(!r.active||!r.active.scriptURL.includes('sw-new')){r.unregister();
-    if(caches){caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});}}});
-});}
+  return Promise.all(rs.map(function(r){return r.unregister();}));
+}).catch(function(){});}
+if('caches' in window){caches.keys().then(function(ks){
+  return Promise.all(ks.map(function(k){return caches.delete(k);}));
+}).catch(function(){});}
 /* Apply the saved theme before first paint. Dark by default; 'system' follows the OS. */
 try{var t=localStorage.getItem('sf_theme')||'dark';
 document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;}catch(e){document.documentElement.dataset.theme='dark';}
@@ -78,7 +79,6 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
     <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="12" rx="2"/><path d="M9 8V6.5A2.5 2.5 0 0 1 11.5 4h1A2.5 2.5 0 0 1 15 6.5V8"/><path d="M3.5 13h17"/></symbol>
     <symbol id="i-gift" viewBox="0 0 24 24"><path d="M4.5 11.5h15V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/><path d="M3.5 8h17v3.5h-17z"/><path d="M12 8v13"/><path d="M12 8s-.6-4-3.4-4a1.9 1.9 0 0 0 0 3.8"/><path d="M12 8s.6-4 3.4-4a1.9 1.9 0 0 1 0 3.8"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
-    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.34-5.66"/><path d="M20 4v7h-7"/></symbol>
   </defs>
 </svg>
 
@@ -297,7 +297,7 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
     <button class="tab-item" data-page="insights"><svg class="icon"><use href="#i-pie"/></svg><span data-i18n="tab_stats">Stats</span></button>
     <button class="tab-item" data-page="planning"><svg class="icon"><use href="#i-target"/></svg><span data-i18n="tab_plans">Plans</span></button>
   </nav>
-  <div class="ptr" id="ptr" aria-hidden="true"><svg class="icon ptr-arrow"><use href="#i-refresh"/></svg><span class="ptr-spinner"></span></div>
+  <div class="ptr" id="ptr" aria-hidden="true"><svg class="ptr-indicator" viewBox="0 0 24 24"><circle class="ptr-track" cx="12" cy="12" r="9"/><circle class="ptr-progress" cx="12" cy="12" r="9"/></svg></div>
 </div>
 
 <!-- ===== Auth ===== -->
@@ -342,6 +342,6 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
 <div class="modal-root" id="modalRoot"></div>
 <div class="modal-root" id="qrRoot"></div>
 <script src="vendor/dist/jsQR.js"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

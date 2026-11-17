@@ -375,19 +375,20 @@ svg.icon.xs { width: 13px; height: 13px; }
 }
 .ptr.visible { opacity: 1; --ptr-scale: 1; }
 .ptr.refreshing { opacity: 1; --ptr-y: 8px; --ptr-scale: 1; }
-.ptr-arrow { width: 21px; height: 21px; color: var(--brand-strong); stroke-width: 1.9; transition: opacity .12s ease, transform .16s ease; }
-.ptr-spinner {
-  position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--brand-strong) 16%, transparent);
-  border-top-color: var(--brand-strong); border-right-color: color-mix(in srgb, var(--brand-strong) 58%, transparent);
-  opacity: 0; transform: scale(.76); transition: opacity .12s ease, transform .18s ease;
+.ptr-indicator { width: 23px; height: 23px; overflow: visible; transform: rotate(-90deg); }
+.ptr-track, .ptr-progress { fill: none; stroke-width: 2.2; }
+.ptr-track { stroke: color-mix(in srgb, var(--text) 16%, transparent); }
+.ptr-progress {
+  stroke: var(--brand-strong); stroke-linecap: round;
+  stroke-dasharray: 56.55; stroke-dashoffset: 56.55;
+  transition: stroke-dashoffset .1s linear;
 }
-.ptr.refreshing .ptr-arrow { opacity: 0; transform: scale(.72); }
-.ptr.refreshing .ptr-spinner { opacity: 1; transform: scale(1); animation: ptrSpin .78s linear infinite; }
+.ptr.refreshing .ptr-indicator { animation: ptrSpin .78s linear infinite; }
+.ptr.refreshing .ptr-progress { stroke-dasharray: 30 56.55; stroke-dashoffset: 0; transition: none; }
 @keyframes ptrSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
-  .ptr, .ptr-arrow, .ptr-spinner { transition-duration: .01ms; }
-  .ptr.refreshing .ptr-spinner { animation-duration: 1.6s; }
+  .ptr, .ptr-progress { transition-duration: .01ms; }
+  .ptr.refreshing .ptr-indicator { animation-duration: 1.6s; }
 }
 
 .page { display: none; padding-bottom: 10px; }

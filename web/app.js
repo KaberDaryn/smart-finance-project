@@ -2585,14 +2585,15 @@ function wirePullToRefresh() {
   let pull = 0;
   let refreshing = false;
   const THRESHOLD = 60;
-  const arrow = indicator.querySelector('.ptr-arrow');
+  const progressArc = indicator.querySelector('.ptr-progress');
+  const circumference = 2 * Math.PI * 9;
 
   function reset() {
     startY = null;
     pull = 0;
     indicator.classList.remove('visible', 'refreshing');
     indicator.style.removeProperty('--ptr-y');
-    if (arrow) arrow.style.transform = '';
+    if (progressArc) progressArc.style.strokeDashoffset = '';
   }
 
   window.addEventListener('touchstart', (e) => {
@@ -2606,13 +2607,13 @@ function wirePullToRefresh() {
     if (delta <= 0) {
       indicator.classList.remove('visible');
       indicator.style.removeProperty('--ptr-y');
-      if (arrow) arrow.style.transform = '';
+      if (progressArc) progressArc.style.strokeDashoffset = '';
       return;
     }
     pull = Math.min(delta * 0.55, 90);
     indicator.classList.add('visible');
     indicator.style.setProperty('--ptr-y', `${Math.min(pull, 74) - 56}px`);
-    if (arrow) arrow.style.transform = `rotate(${Math.min(pull / THRESHOLD, 1) * 180}deg)`;
+    if (progressArc) progressArc.style.strokeDashoffset = String(circumference * (1 - Math.min(pull / THRESHOLD, 1)));
     if (e.cancelable && pull > 8) e.preventDefault();
   }, { passive: false });
 
