@@ -2585,14 +2585,14 @@ function wirePullToRefresh() {
   let pull = 0;
   let refreshing = false;
   const THRESHOLD = 60;
+  const arrow = indicator.querySelector('.ptr-arrow');
 
   function reset() {
     startY = null;
     pull = 0;
     indicator.classList.remove('visible', 'refreshing');
-    indicator.style.transform = 'translateY(-52px)';
-    const ic = indicator.querySelector('.icon');
-    if (ic) ic.style.transform = '';
+    indicator.style.removeProperty('--ptr-y');
+    if (arrow) arrow.style.transform = '';
   }
 
   window.addEventListener('touchstart', (e) => {
@@ -2605,14 +2605,14 @@ function wirePullToRefresh() {
     const delta = e.touches[0].clientY - startY;
     if (delta <= 0) {
       indicator.classList.remove('visible');
-      indicator.style.transform = 'translateY(-52px)';
+      indicator.style.removeProperty('--ptr-y');
+      if (arrow) arrow.style.transform = '';
       return;
     }
     pull = Math.min(delta * 0.55, 90);
     indicator.classList.add('visible');
-    indicator.style.transform = `translateY(${Math.min(pull, 74) - 52}px)`;
-    const ic = indicator.querySelector('.icon');
-    if (ic) ic.style.transform = `rotate(${pull * 3}deg)`;
+    indicator.style.setProperty('--ptr-y', `${Math.min(pull, 74) - 56}px`);
+    if (arrow) arrow.style.transform = `rotate(${Math.min(pull / THRESHOLD, 1) * 180}deg)`;
     if (e.cancelable && pull > 8) e.preventDefault();
   }, { passive: false });
 
@@ -2624,7 +2624,7 @@ function wirePullToRefresh() {
     if (shouldRefresh) {
       refreshing = true;
       indicator.classList.add('refreshing');
-      indicator.style.transform = 'translateY(8px)';
+      indicator.style.setProperty('--ptr-y', '8px');
       try {
         await loadAll();
         toast(t('toast_refreshed'), 'info');

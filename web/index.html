@@ -78,7 +78,7 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
     <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3.5" y="8" width="17" height="12" rx="2"/><path d="M9 8V6.5A2.5 2.5 0 0 1 11.5 4h1A2.5 2.5 0 0 1 15 6.5V8"/><path d="M3.5 13h17"/></symbol>
     <symbol id="i-gift" viewBox="0 0 24 24"><path d="M4.5 11.5h15V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z"/><path d="M3.5 8h17v3.5h-17z"/><path d="M12 8v13"/><path d="M12 8s-.6-4-3.4-4a1.9 1.9 0 0 0 0 3.8"/><path d="M12 8s.6-4 3.4-4a1.9 1.9 0 0 1 0 3.8"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M20 18v3H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
-    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M20 12a8 8 0 1 1-2.35-5.65L20 9"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.34-5.66"/><path d="M20 4v7h-7"/></symbol>
   </defs>
 </svg>
 
@@ -297,7 +297,7 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
     <button class="tab-item" data-page="insights"><svg class="icon"><use href="#i-pie"/></svg><span data-i18n="tab_stats">Stats</span></button>
     <button class="tab-item" data-page="planning"><svg class="icon"><use href="#i-target"/></svg><span data-i18n="tab_plans">Plans</span></button>
   </nav>
-  <div class="ptr" id="ptr" aria-hidden="true"><svg class="icon"><use href="#i-refresh"/></svg></div>
+  <div class="ptr" id="ptr" aria-hidden="true"><svg class="icon ptr-arrow"><use href="#i-refresh"/></svg><span class="ptr-spinner"></span></div>
 </div>
 
 <!-- ===== Auth ===== -->
@@ -342,6 +342,6 @@ document.documentElement.dataset.theme=(t==='system')?(matchMedia('(prefers-colo
 <div class="modal-root" id="modalRoot"></div>
 <div class="modal-root" id="qrRoot"></div>
 <script src="vendor/dist/jsQR.js"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
