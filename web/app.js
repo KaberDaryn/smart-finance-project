@@ -657,16 +657,19 @@ async function api(path, opts = {}) {
 function toast(message, type = 'success') {
   const stack = $('toastStack');
   if (!stack) return;
-  while (stack.children.length >= 4) stack.firstElementChild.remove();
+  stack.querySelectorAll('.toast').forEach((existing) => {
+    if (existing.dismissTimer) clearTimeout(existing.dismissTimer);
+    existing.remove();
+  });
   const icons = { success: 'i-check', error: 'i-alert', info: 'i-info' };
   const el = document.createElement('div');
   el.className = 'toast ' + type;
   el.innerHTML = icon(icons[type] || 'i-info', 'icon') + '<span>' + esc(message) + '</span>';
   stack.append(el);
-  setTimeout(() => {
+  el.dismissTimer = setTimeout(() => {
     el.classList.add('out');
-    setTimeout(() => el.remove(), 260);
-  }, 3600);
+    setTimeout(() => el.remove(), 220);
+  }, type === 'error' ? 2800 : 1700);
 }
 
 /* ---------- 6. Modal system ---------- */
@@ -1517,7 +1520,7 @@ function openTxModal() {
   });
 }
 
-/* ---------- 14b. QR scanner (camera + BarcodeDetector) ---------- */
+/* ---------- 14b. QR scanner (camera + native/jsQR decoder) ---------- */
 function openQrModal(onResult) {
   const modal = openModal(`
     <div class="modal-head"><div><div class="eyebrow">Scanner</div><h2>Scan QR code</h2></div>
@@ -1531,6 +1534,7 @@ function openQrModal(onResult) {
       <button type="button" class="btn ghost" data-close>Close</button>
     </div>`, {
     narrow: true,
+    rootId: 'qrRoot',
     onClose: () => cleanup(),
   });
 
@@ -1550,10 +1554,6 @@ function openQrModal(onResult) {
     status.className = 'field-hint' + (type ? ' ' + type : '');
   }
 
-  if (!('BarcodeDetector' in window)) {
-    statusMessage(t('qr_fallback_browser'), 'error');
-    return;
-  }
   if (!navigator.mediaDevices?.getUserMedia) {
     statusMessage(t('qr_fallback_context'), 'error');
     return;
@@ -1561,30 +1561,72 @@ function openQrModal(onResult) {
 
   (async () => {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
       video.srcObject = stream;
       await video.play();
     } catch (cameraError) {
       statusMessage(t('qr_fallback_camera'), 'error');
       return;
     }
+
+    let detector = null;
     try {
-      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
-      timer = setInterval(async () => {
-        if (settled || !video.videoWidth) return;
-        try {
-          const codes = await detector.detect(video);
-          if (codes.length && codes[0].rawValue) {
-            settled = true;
-            cleanup();
-            modal.close(true);
-            onResult(codes[0].rawValue);
-          }
-        } catch (_) { /* frame skipped */ }
-      }, 350);
-    } catch (detectorError) {
+      if ('BarcodeDetector' in window) detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+    } catch (_) { /* Use the local decoder when native QR detection is unavailable. */ }
+
+    if (!detector && typeof window.jsQR !== 'function') {
       statusMessage(t('qr_fallback_detect'), 'error');
+      return;
     }
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) {
+      statusMessage(t('qr_fallback_detect'), 'error');
+      return;
+    }
+    let scanning = false;
+    timer = setInterval(async () => {
+      if (settled || scanning || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth) return;
+      scanning = true;
+      try {
+        let value = '';
+        if (detector) {
+          try {
+            const codes = await detector.detect(video);
+            value = codes.find((code) => code.rawValue)?.rawValue || '';
+          } catch (_) {
+            detector = null;
+          }
+        }
+        if (!value && window.jsQR) {
+          const scale = Math.min(1, 640 / video.videoWidth);
+          const width = Math.max(1, Math.round(video.videoWidth * scale));
+          const height = Math.max(1, Math.round(video.videoHeight * scale));
+          if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+          }
+          context.drawImage(video, 0, 0, width, height);
+          const frame = context.getImageData(0, 0, width, height);
+          value = window.jsQR(frame.data, width, height, { inversionAttempts: 'dontInvert' })?.data || '';
+        }
+        if (value) {
+          settled = true;
+          cleanup();
+          modal.close(true);
+          onResult(value);
+        }
+      } catch (_) { /* Skip this frame; keep the camera preview running. */ }
+      finally { scanning = false; }
+    }, 260);
   })();
 }
 
